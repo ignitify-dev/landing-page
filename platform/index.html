@@ -1,0 +1,137 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Platform — Ignitify for operators</title><meta name="description" content="Many tenants, multiple hosts, no shared blast radius. Three nested isolation boundaries, each verified separately."><link rel="canonical" href="https://ignitify.dev/platform/"><script>
+    (function () {
+      try {
+        var t = localStorage.getItem('ig-theme');
+        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { /* private mode — fall back to prefers-color-scheme */ }
+      // The `js` class is what gates every scroll reveal. Without it the
+      // .reveal rules never match, so a JS-off visitor gets the full page at
+      // full opacity rather than a blank column — a reveal that can strand
+      // content invisible is a content bug wearing an animation's clothes.
+      // Set here, before first paint, so revealed sections never flash in.
+      document.documentElement.classList.add('js');
+    })();
+  </script><link rel="stylesheet" href="/_astro/Footer.DQlbbKkg.css"></head><body><a class="skip" href="#main">Skip to content</a><header class="hdr" id="hdr" data-scrolled="false"><div class="hdr-in"><a class="mark" href="/"><span class="spark" aria-hidden="true"></span><span class="wordmark">Ignitify<span>.dev</span></span></a><nav class="nav" id="sitenav" data-open="false"><a href="/docs">Docs</a><a href="/platform" aria-current="page">Platform</a><a href="/pricing">Pricing</a><a href="/blog">Blog</a></nav><span class="sp"></span><div class="hdr-cta"><button class="themetog" type="button" id="bt" aria-label="Switch between light and dark theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="3.4"></circle><path d="M8 .8v2M8 13.2v2M.8 8h2M13.2 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M13.1 2.9l-1.4 1.4M4.3 11.7l-1.4 1.4"></path></svg></button><a class="btn solid live" href="/signin">Start free</a><button class="burger" type="button" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="sitenav"><span></span><span></span><span></span></button></div></div></header><div id="main" tabindex="-1"><main>
+
+  <section class="hero-sec" id="platform-hero">
+    <div class="mid">
+      <span class="eyebrow">For operators</span>
+      <h1>Multiple tenants & hosts.<br> No shared <em>blast radius</em>.</h1><br>
+      <div class="cta-row">
+        <a class="btn solid" href="/docs">Read the tier model</a>
+        <a class="btn ghost" href="#platform-isolation">See how isolation holds</a>
+        <span class="lbl">jailed hypervisor · separate kernel · de-privileged child</span>
+      </div>
+    </div>
+  </section><section id="platform-isolation" class="reveal"><div class="mid"><h2>Three boundaries, each verified separately.</h2><p class="def">Tenants don’t share a kernel, a uid, or a network path. Each boundary was tested on its own, because a boundary you haven’t tested is a boundary you’re assuming.</p></div><div class="nest stack-5 stagger"><div class="nest-l"><div class="nest-b"><h3>The jailed hypervisor</h3><p class="tiny role">bounds what a hypervisor escape reaches</p><p class="def">A per-VM uid, never shared between two live VMs, chrooted to that VM’s files only. Enabled by default in every environment — the production launch path is the only launch path.</p></div></div><div class="nest-l"><div class="nest-b"><h3>The MicroVM</h3><p class="tiny role">bounds the guest’s reachable network</p><p class="def">Separate kernel, three drives, no shared filesystem. Cross-tenant and guest→host traffic are both dropped on two independent paths.</p></div></div><div class="nest-l"><div class="nest-b"><h3>The de-privileged child</h3><p class="tiny role">bounds what the guest can do</p><p class="def">Your code runs as uid 10001 with <span class="mono">--no-new-privs</span>. Unconditional — there is no configuration that turns it off.</p></div></div></div></section><!-- This was the one section that broke the page's header pattern: a bare
+       .eyebrow over a left-aligned .measure wrapping an h2.sh, where the other
+       four use a centred .mid with a plain h2. .sh also resolved to a DIFFERENT
+       h2 size (35.84px against 32.77px at 1024px), so it was the odd one out in
+       alignment, structure and scale at once. -->
+<section id="platform-hierarchy" class="reveal">
+  <div class="mid">
+    <span class="eyebrow">Concepts</span>
+    <h2>Four levels, each owning exactly one thing.</h2>
+  </div>
+  <!-- Table and caption share one measured column. The caption belongs to the
+         table, so it has to start where the table starts; centring .hier on its
+         own left the caption hanging 74px outside it. -->
+  <div class="hier-block stack-5">
+    <div class="hier">
+      <div class="hrow">
+        <div class="hl">tenant<span class="sub">identity</span></div>
+        <div class="hd">An account, and the unit of isolation and auth. Owns hashed API keys, the granted tier, the secrets vault, the monthly egress rollup — and <b>no policy of its own</b>. Everything a tenant may do comes from its tier, and
+          nowhere else.</div>
+      </div>
+      <div class="hrow">
+        <div class="hl">task<span class="sub">a name</span></div>
+        <div class="hd">A reusable definition, unique per tenant by slug. Slugs are <b>burn-forever</b>: permanently reserved even after deletion, so a deleted name can never be silently reused by something new.</div>
+      </div>
+      <div class="hrow">
+        <div class="hl">deployment<span class="sub">an image</span></div>
+        <div class="hd">One immutable, content-addressed build. Owns the <b>resolved execution nature</b> and the bootable code image. Identical content deduplicates instead of rebuilding.</div>
+      </div>
+      <div class="hrow">
+        <div class="hl">run<span class="sub">one job</span></div>
+        <div class="hd">One execution of one deployment, <b>in one MicroVM</b>. Owns the payload, an immutable instruction snapshot, the boot fingerprint, its slot and IP, and its own per-run callback token and secret.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 07 PLATFORM ════ -->
+
+<section id="platform-sequence" class="reveal">
+  <div class="mid">
+    <h2>One run, end to end.</h2>
+    <p class="def">
+      What happens between <span class="mono">task:run</span> and a result. Four participants,
+      and three checks that can stop it — each answering a different question.
+    </p>
+  </div>
+
+  <div class="seq" role="img"
+    aria-label="Sequence diagram: the CLI submits a run to the control plane, where either of two brains answers. It checks entitlement and capability, then admits the run in a single database transaction. It dispatches a spawn and a signed network policy to a fleet host, whose daemon programs the kernel and boots a jailed MicroVM. The guest pulls its payload and pushes progress and its result back over vsock. The control plane returns the result to the CLI.">
+    <div class="seq-actors" aria-hidden="true">
+      <div class="sa"><b>You</b><span>CLI</span></div>
+      <div class="sa"><b>Control plane</b><span>LB + 2 brains</span></div>
+      <div class="sa"><b>Fleet host</b><span>agent + daemon</span></div>
+      <div class="sa"><b>MicroVM</b><span>your code</span></div>
+    </div>
+
+    <ol class="seq-steps">
+      <li class="sq" data-from="0" data-to="1">
+        <span class="sq-n">1</span>
+        <span class="sq-msg"><code>task:run</code></span>
+        <span class="sq-note">Submitted with your API key and a payload. It lands on a load balancer — <b>either</b> brain can answer, and neither is the one you talk to next.</span>
+      </li>
+      <li class="sq self" data-from="1" data-to="1">
+        <span class="sq-n">2</span>
+        <span class="sq-msg">May this tenant ask?</span>
+        <span class="sq-note">Reads the tier. Refuses with <b class="gate">429</b> — the fix is a different tier, not a retry.</span>
+      </li>
+      <li class="sq self" data-from="1" data-to="1">
+        <span class="sq-n">3</span>
+        <span class="sq-msg">Is this kind of work allowed?</span>
+        <span class="sq-note">Capability check. <b class="gate">403</b> here is the real authority; <b class="gate">400</b> already caught it at deploy, before any VM.</span>
+      </li>
+      <li class="sq self" data-from="1" data-to="1">
+        <span class="sq-n">4</span>
+        <span class="sq-msg">Admit · record</span>
+        <span class="sq-note">Concurrency, rate, the run row and the month's counter — <b>one transaction</b> against a database on its own machine, so two brains racing the same tenant cannot both win. <b class="gate">503</b> means the fleet is
+          full: a run inside its entitlement is queued, not refused.</span>
+      </li>
+      <li class="sq" data-from="1" data-to="2">
+        <span class="sq-n">5</span>
+        <span class="sq-msg">Spawn · network policy</span>
+        <span class="sq-note">Over mutual TLS. The policy is signed and travels <b>with</b> the spawn — a VM never boots into a host that has not been told what it may reach.</span>
+      </li>
+      <li class="sq self" data-from="2" data-to="2">
+        <span class="sq-n">6</span>
+        <span class="sq-msg">Program the kernel</span>
+        <span class="sq-note">A Rust daemon owns every privileged call: the per-slot firewall, the egress allowlist, bandwidth and connection limits. Enforcement is in the kernel, not in your process.</span>
+      </li>
+      <li class="sq" data-from="2" data-to="3">
+        <span class="sq-n">7</span>
+        <span class="sq-msg">Boot</span>
+        <span class="sq-note">A jailed Firecracker process under its own uid. Separate kernel, read-only code image, read-write scratch.</span>
+      </li>
+      <li class="sq back" data-from="3" data-to="2">
+        <span class="sq-n">8</span>
+        <span class="sq-msg">Pull payload · push result</span>
+        <span class="sq-note">The <b>guest</b> opens every exchange, over <span class="mono">vsock</span> — never the network. It asks for its payload, runs your exported function, and streams progress and the result back the same way.</span>
+      </li>
+      <li class="sq back" data-from="2" data-to="1">
+        <span class="sq-n">9</span>
+        <span class="sq-msg">Relay · teardown</span>
+        <span class="sq-note">The host relays the frames it cannot read to the control plane. The VM is destroyed, its slot returned to the pool, and the bytes it sent are billed from the kernel's own counters.</span>
+      </li>
+      <li class="sq back" data-from="1" data-to="0">
+        <span class="sq-n">10</span>
+        <span class="sq-msg"><code>run:get</code></span>
+        <span class="sq-note">Status, result, and the last streamed chunk — from whichever brain answers, not the one that ran it.</span>
+      </li>
+    </ol>
+  </div>
+</section><section class="closing reveal" id="platform-cta"><div class="mid"><h2>Ignitify runs on bare metal.</h2><p class="def">Firecracker needs direct access to the CPU&#39;s virtualisation — it opens /dev/kvm on the host — so there is no other tenant&#39;s hypervisor underneath yours. The boundary around your job is the machine&#39;s own, not a scheduler&#39;s promise.</p></div><div class="cta-row"><a class="btn solid lg" href="/docs">Read the docs</a></div></section></main>
+<footer class="ft"><div class="ft-in"><div class="ft-cols"><div class="ft-col"><div class="mark" style="margin-bottom:4px"><span class="spark" aria-hidden="true"></span><span class="wordmark">Ignitify<span>.dev</span></span></div><p class="tiny" style="color:var(--graphite);max-width:26ch">Untrusted code, one Firecracker MicroVM per job.</p></div><div class="ft-col"><h4>Product</h4><a href="/docs">Docs</a><a href="/platform">Platform</a><a href="/pricing">Pricing</a></div><div class="ft-col"><h4>Company</h4><a href="/blog">Blog</a><a href="/about">About</a><a href="/contact">Contact</a></div><div class="ft-col"><h4>Legal</h4><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/dpa">DPA</a></div><div class="ft-col"><h4>Trust</h4><a href="/status">Status</a></div></div></div><div class="ft-bot"><span class="tiny">© 2026 Ignitify</span></div></footer></div><script type="module">(function(){var e=document.documentElement,t=window.matchMedia(`(prefers-reduced-motion: reduce)`),n=document.querySelectorAll(`.reveal`);function r(){for(var e=0;e<n.length;e++)n[e].classList.add(`seated`)}if(t.matches||!(`IntersectionObserver`in window))r();else{for(var i=new IntersectionObserver(function(e){for(var t=0;t<e.length;t++)e[t].isIntersecting&&(e[t].target.classList.add(`seated`),i.unobserve(e[t].target))},{rootMargin:`0px 0px -12% 0px`,threshold:.02}),a=0;a<n.length;a++)i.observe(n[a]);requestAnimationFrame(function(){for(var e=0;e<n.length;e++)n[e].getBoundingClientRect().top<window.innerHeight*.9&&n[e].classList.add(`seated`)})}t.addEventListener&&t.addEventListener(`change`,function(e){e.matches&&r()});var o=document.getElementById(`hdr`),s=!1;function c(){s||(s=!0,requestAnimationFrame(function(){s=!1;var n=window.scrollY||window.pageYOffset||0;if(o){var r=n>24?`true`:`false`;o.getAttribute(`data-scrolled`)!==r&&o.setAttribute(`data-scrolled`,r)}if(!t.matches){var i=document.documentElement.scrollHeight-window.innerHeight,a=i>0?n/i:0;e.style.setProperty(`--progress`,a<0?0:a>1?1:a)}}))}window.addEventListener(`scroll`,c,{passive:!0}),window.addEventListener(`resize`,c,{passive:!0}),c()})();</script><script type="module">var e=document.documentElement;document.getElementById(`bt`)?.addEventListener(`click`,()=>{let t=window.matchMedia(`(prefers-color-scheme:dark)`).matches,n=(e.getAttribute(`data-theme`)||(t?`dark`:`light`))===`dark`?`light`:`dark`;e.setAttribute(`data-theme`,n);try{localStorage.setItem(`ig-theme`,n)}catch{}});var t=document.getElementById(`burger`),n=document.getElementById(`sitenav`);if(t&&n){let e=e=>{t.setAttribute(`aria-expanded`,String(e)),n.setAttribute(`data-open`,String(e))};t.addEventListener(`click`,()=>{e(t.getAttribute(`aria-expanded`)!==`true`)}),document.addEventListener(`keydown`,n=>{n.key===`Escape`&&t.getAttribute(`aria-expanded`)===`true`&&(e(!1),t.focus())}),window.matchMedia(`(min-width:861px)`).addEventListener(`change`,t=>{t.matches&&e(!1)})}</script></body></html>

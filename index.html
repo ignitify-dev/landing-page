@@ -1,0 +1,529 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ignitify — every job gets its own kernel</title><meta name="description" content="Untrusted code, one Firecracker MicroVM per job. Declare a workload's nature; the platform derives the mechanism."><link rel="canonical" href="https://ignitify.dev/"><script>
+    (function () {
+      try {
+        var t = localStorage.getItem('ig-theme');
+        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { /* private mode — fall back to prefers-color-scheme */ }
+      // The `js` class is what gates every scroll reveal. Without it the
+      // .reveal rules never match, so a JS-off visitor gets the full page at
+      // full opacity rather than a blank column — a reveal that can strand
+      // content invisible is a content bug wearing an animation's clothes.
+      // Set here, before first paint, so revealed sections never flash in.
+      document.documentElement.classList.add('js');
+    })();
+  </script><link rel="stylesheet" href="/_astro/Footer.DQlbbKkg.css"></head><body><a class="skip" href="#main">Skip to content</a><header class="hdr" id="hdr" data-scrolled="false"><div class="hdr-in"><a class="mark" href="/"><span class="spark" aria-hidden="true"></span><span class="wordmark">Ignitify<span>.dev</span></span></a><nav class="nav" id="sitenav" data-open="false"><a href="/docs">Docs</a><a href="/platform">Platform</a><a href="/pricing">Pricing</a><a href="/blog">Blog</a></nav><span class="sp"></span><div class="hdr-cta"><button class="themetog" type="button" id="bt" aria-label="Switch between light and dark theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="3.4"></circle><path d="M8 .8v2M8 13.2v2M.8 8h2M13.2 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M13.1 2.9l-1.4 1.4M4.3 11.7l-1.4 1.4"></path></svg></button><a class="btn solid live" href="/signin">Start free</a><button class="burger" type="button" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="sitenav"><span></span><span></span><span></span></button></div></div></header><div id="main" tabindex="-1"><main>
+
+  <!-- SPLIT FOLD. Argument left, evidence right. The unit is at object scale,
+       the seal sits directly beneath it, and the manifest declares the seven
+       axes as a ruled form. Reading order is the argument, then the proof.
+       Copy is unchanged from the previous world: this is a visual replacement,
+       not a rewrite. -->
+  <section class="hero-sec" id="home-hero">
+    <div class="fold">
+      <div class="fold-arg">
+        <!-- Deliberately unnumbered. The numbered sequence 01-07 belongs to the
+             sections below; a hero that also says "01" makes two different
+             things claim the same index, and the numbering stops carrying
+             information the moment it repeats. -->
+        <span class="eyebrow">One unit, one kernel</span>
+        <h1>Every job gets its own <em>kernel</em>.</h1>
+        <p class="dek">Untrusted code, one Firecracker MicroVM per job.</p>
+        <p class="def dek-sub">
+          You describe what the work <strong>is</strong>. Ignitify derives the machine it needs,
+          boots it, and destroys it when the work is done.
+        </p>
+        <!-- THE CONVERSION ACTION IS NOT HERE — it is the lemon `Start free` in
+             the header, which is sticky and therefore reachable from every point
+             in the page rather than only from the top of it. A hero button and a
+             header button pointing at the same /signin were the same offer made
+             twice, 60px apart, and the hero copy competed with the header for
+             the one filled weight the palette allows.
+             What is left are the two EXPLORE actions, and they are ordered by
+             commitment: read the contract, then drive the thing. Both are in-page
+             anchors, so neither leaves the argument. -->
+        <!-- ONE ROW, TWO WEIGHTS. These were two stacked blocks 11px apart —
+             a ghost button and a text link, the two weakest weights in the
+             system — so the column trailed off instead of resolving. They are
+             one terminal beat now.
+             `Write a task` takes INK-solid, not lemon: lemon means "live" and is
+             rationed to two filled buttons per page (the header and the closing
+             section). Ink-solid is the system's neutral primary and already
+             ships on /platform, so this restores a primary without spending the
+             accent. Same words, same order, same destinations. -->
+        <div class="cta-row">
+          <a class="btn solid lg" href="#home-write">Write a task</a>
+          <a class="cta-link" href="#home-console">Try the console</a>
+        </div>
+      </div>
+
+      <!-- The four boundaries, drawn as the physical nesting they actually
+           are — and then RUN. This is the page's central claim rendered rather
+           than asserted: each layer is literally a DOM descendant of the one
+           outside it, so the containment is structural, not a picture of
+           containment. Drawing it as four sibling cards would assert the
+           hierarchy while contradicting it.
+
+           The rig is a lifecycle, not a diagram. A static nest can only claim
+           isolation; the interesting fact about this product is that the walls
+           are BUILT PER JOB and torn down after — which is inherently temporal
+           and cannot be shown by a still image. `data-stage` on .rig drives
+           every layer, and the JS advances it: idle → land → seal → boot →
+           run → done → reclaim, then loops. Nothing here is decorative: each
+           stage corresponds to a real step (bind, jail, boot, execute, destroy).
+
+           ACCESSIBILITY. The figure is aria-hidden and the caption carries the
+           whole argument in prose, because a screen reader announcing a
+           7-stage loop is noise, not information. Reduced-motion pins the rig
+           at the `run` stage — its most informative frame — and kills the
+           animation, so the diagram never depends on movement to be readable.
+
+           CONTRAST. Every label sits on a flat carrier (.lay-tab / .job).
+           Nothing is set directly on the corrugated shell — 12.5px text on the
+           lit rib fails WCAG in BOTH themes and no token value fixes it
+           (passing on the lit rib means failing on the shadow rib), so the
+           ribbed shells stay wordless and every text region is plated. -->
+      <div class="fold-ev">
+        <!-- aria-hidden moved OFF the figure and onto .rig-fig. The steps are
+             <button>s and were sitting inside an aria-hidden subtree: focusable,
+             reachable by Tab, announced as nothing — a WCAG 4.1.2 failure that
+             predates this work. The DIAGRAM stays hidden (a screen reader
+             announcing an 8-stage loop is noise); the CONTROLS that operate it
+             are exposed, and the figcaption is now the figure's accessible
+             name, so the prose carrying the argument is what actually lands. -->
+        <figure class="rig" id="rig" data-stage="idle" aria-labelledby="rig-cap">
+
+          <div class="rig-fig" aria-hidden="true">
+
+            <!-- The wire. The job arrives from outside the host — it is not
+               already there, which is the whole point of the sequence. -->
+            <div class="wire">
+              <span class="wire-lbl">task:run</span>
+              <span class="wire-pkt"></span>
+            </div>
+
+            <div class="lay lay-host">
+              <span class="lay-tab">Host machine <em class="lay-st"></em></span>
+
+              <!-- The teardown statement, centred on the host. It occupies the
+                 space the machine vacated, which is the argument: the walls
+                 were here, they are gone, and nothing of the run remains.
+                 Sourced from proof.yaml → callback_isolation — after teardown
+                 the routes unpublished and a callback returned 404 with no host
+                 code run and no VM revived, captured 2026-08-05. -->
+              <span class="rig-retained">0 retained · routes unpublished</span>
+
+              <!-- data-built is the ghost/built switch. These two layers are the
+                 ones the product actually MANUFACTURES per job; the host is
+                 not ours and the payload is not a wall, so neither takes it. -->
+              <div class="lay lay-jail" data-built="0">
+                <span class="lay-tab">Jailed hypervisor <em>uid per VM · chroot · firecracker</em></span>
+
+                <div class="lay lay-vm" data-built="0">
+                  <span class="lay-tab">MicroVM <em>its own kernel</em></span>
+
+                  <div class="job">
+                    <span class="job-run">run()</span>
+                    <span class="job-uid">uid 10001 · --no-new-privs</span>
+                    <!-- The execution bar: real progress, not a spinner. It only
+                       moves during `run`, so it reads as work being done. -->
+                    <span class="job-bar" aria-hidden="true"><i></i></span>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /.rig-fig -->
+
+          <!-- The stage readout. This is what makes the motion legible: without
+               a name, a moving diagram is just movement. Each line is a real
+               step and lights only while that step is current.
+
+               The steps double as the transport: clicking one jumps to that
+               stage and pauses there, so the diagram can be READ rather than
+               only watched. That is why they are <button>s — they are genuinely
+               interactive, and a div with a click handler would not be
+               reachable by keyboard. -->
+          <!-- THE SEQUENCE RAIL. Five numbered nodes on a track that FILLS as
+               the lifecycle advances. The numerals are not decoration: they
+               make "five steps" countable at a glance and they are what keeps
+               the order readable below 560px, where the row scrolls and
+               position alone stops encoding sequence.
+               Arrows between the labels were considered and rejected — four
+               chevrons are four pieces of chrome that each say nothing alone,
+               and they break at exactly the width where direction matters most.
+               One filling track says it once, and carries progress as well as
+               direction. -->
+          <!-- THE RAIL ROW. The step rail and the transport drive the same
+               state, so they sit on one line rather than as two stacked blocks.
+               DOM order is rail-then-transport, so keyboard focus still reaches
+               Pause immediately after the five steps it controls. -->
+          <div class="rig-rail">
+            <ol class="rig-steps">
+              <li><button type="button" data-for="land"><i>1</i><b>bind</b></button></li>
+              <li><button type="button" data-for="seal"><i>2</i><b>jail</b></button></li>
+              <li><button type="button" data-for="boot"><i>3</i><b>boot</b></button></li>
+              <li><button type="button" data-for="run"><i>4</i><b>run</b></button></li>
+              <li><button type="button" data-for="reclaim"><i>5</i><b>destroy</b></button></li>
+            </ol>
+
+            <!-- Transport. The animation loops, and a loop the reader cannot stop
+                 is a nuisance on a page they came to read — so pause is a real
+                 control, not a concession. It is a button (not a checkbox) with
+                 aria-pressed, and the label text changes with the state so it is
+                 not colour-only. -->
+            <div class="rig-ctl">
+              <button type="button" class="rig-play" id="rigplay" aria-pressed="false" aria-controls="rig">
+                <span class="rig-ico" aria-hidden="true"></span>
+                <span class="rig-play-t">Pause</span>
+              </button>
+              <!-- The stage name is no longer PRINTED beside the transport: the
+                   numbered rail already names the current step, and a second
+                   readout saying the same word was redundant chrome next to the
+                   one control in the row.
+                   Its accessibility job is real and is kept — the live region
+                   announces stage changes while paused, so a screen-reader user
+                   scrubbing the sequence hears where they landed. It is now
+                   visually hidden rather than deleted; removing it would have
+                   silently taken that away. -->
+              <span class="rig-now vh" id="rignow" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <!-- THE CAPTION IS NOW INSIDE ITS FIGURE, and that is a correctness
+               fix as much as a compositional one. It previously sat as a sibling
+               of <figure> inside .fold-ev — a <figcaption> outside a <figure>,
+               which is invalid HTML, carries no association to the figure for
+               assistive technology, and left the figure with NO accessible name
+               at all despite a comment here claiming it was the figure's name.
+               aria-labelledby now makes that claim true.
+               Compositionally: the transport used to sit BETWEEN the figure and
+               its caption, splitting them, so the evidence column read as three
+               loose blocks. It is one object now. -->
+          <figcaption class="cap" id="rig-cap">
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="home-console" class="band band-well reveal">
+    <div class="mid">
+      <div class="eyebrow">01 — The console</div>
+      <h2 class="sh">You don’t configure a runtime. You describe a workload.</h2>
+    </div>
+
+    <!-- Was one paragraph carrying three unrelated instructions. They are three
+         steps, not three clauses, so they are numbered: the reader declares,
+         the platform derives, and the platform reclaims. That is the real
+         lifecycle order, which is why the numbering is allowed to exist here
+         at all.
+         ⌛ Step 3 was "Two combinations are refused — try to find them", a
+         literal count of the console's two data-reject options and its call to
+         action. The REFUSAL IS STILL SHOWN — both options are marked in the
+         console below and produce the resolver's real message (home.js) — but
+         it is no longer what this step points at. If the steps ever lose that,
+         re-read DESIGN-NOTES §3: showing what is rejected is the trust signal,
+         not an aside. -->
+    <ol class="steps stagger">
+      <li class="step">
+        <span class="step-i" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+            <!-- Three rails with handles at different stops: the axes are
+                 things you SET, which four plain rules did not say. -->
+            <path d="M3 5h14M3 10h14M3 15h14" />
+            <path d="M7 3v4M13 8v4M6 13v4" />
+          </svg>
+        </span>
+        <h3>You set seven axes</h3>
+        <p class="def">Cardinality, duration, state, interaction, network, residency, storage. Nothing else.</p>
+      </li>
+      <li class="step">
+        <span class="step-i" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+            <!-- One line in, three out. "Derives the rest" is a fan-out;
+                 the old cross-and-chevron read as neither. -->
+            <path d="M3 10h5" />
+            <path d="M8 4v12" />
+            <path d="M8 4h6M8 10h6M8 16h6" />
+          </svg>
+        </span>
+        <h3>The platform derives the rest</h3>
+        <p class="def">VM lifecycle, teardown, worker instructions, network, and the boot fingerprint.</p>
+      </li>
+      <li class="step">
+        <span class="step-i" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+            <!-- A unit going back into the pool. Deliberately NOT a
+                 prohibition sign (the old circle-and-slash) — that said
+                 "refused", and this step no longer does. -->
+            <path d="M4 9h12" />
+            <path d="M6 9v8h8V9" />
+            <path d="M10 2v5M7.5 4.5L10 7l2.5-2.5" />
+          </svg>
+        </span>
+        <h3>A garbage collector reclaims it</h3>
+        <p class="def">When the run ends the VM is destroyed and its slot returned to the pool.</p>
+      </li>
+    </ol>
+
+    <div class="cwrap">
+      <div class="console">
+
+        <div class="panel">
+          <div class="panel-h"><b>You declare</b><span>config.ts → execution</span></div>
+          <div class="panel-b">
+            <div class="axis">
+              <div class="axis-h"><dfn>cardinality</dfn><i>How many units per VM?</i></div>
+              <div class="opts" data-axis="cardinality">
+                <button class="opt" type="button" data-v="one">one</button>
+                <button class="opt" type="button" data-v="many">many</button>
+                <button class="opt" type="button" data-v="continuous">continuous</button>
+              </div>
+            </div>
+            <div class="axis">
+              <div class="axis-h"><dfn>duration</dfn><i>How long is one unit?</i></div>
+              <div class="opts" data-axis="duration">
+                <button class="opt" type="button" data-v="short">short</button>
+                <button class="opt" type="button" data-v="long">long</button>
+                <button class="opt" type="button" data-v="unbounded" data-reject="1">unbounded</button>
+              </div>
+            </div>
+            <div class="axis">
+              <div class="axis-h"><dfn>state</dfn><i>What survives between units?</i></div>
+              <div class="opts" data-axis="state">
+                <button class="opt" type="button" data-v="independent">independent</button>
+                <button class="opt" type="button" data-v="across-runs">across-runs</button>
+                <button class="opt" type="button" data-v="across-crashes" data-reject="1">across-crashes</button>
+              </div>
+            </div>
+            <div class="axis">
+              <div class="axis-h"><dfn>interaction</dfn><i>When do you need output?</i></div>
+              <div class="opts" data-axis="interaction">
+                <button class="opt" type="button" data-v="boundary-only">boundary-only</button>
+                <button class="opt" type="button" data-v="continuous">continuous</button>
+              </div>
+            </div>
+            <div class="axis">
+              <div class="axis-h"><dfn>network.type</dfn><i>What can the VM reach?</i></div>
+              <div class="opts" data-axis="network">
+                <button class="opt" type="button" data-v="none">none</button>
+                <button class="opt" type="button" data-v="egress">egress</button>
+                <button class="opt" type="button" data-v="bidirectional">bidirectional</button>
+              </div>
+
+              <!-- network is an OBJECT, not a scalar. Nine sub-keys, gated by type. -->
+              <div class="sub" id="sub-egress" hidden>
+                <div class="subrow">
+                  <label for="eallow"><code>egress_allow</code> <em>omitted = allow-all · [] = deny-all</em></label>
+                  <input type="text" id="eallow" class="tin" placeholder="api.github.com, *.stripe.com" autocomplete="off">
+                </div>
+                <div class="subrow inline">
+                  <label for="etls"><code>egress_tls_only</code></label>
+                  <span class="chk"><input type="checkbox" id="etls"><em id="etlsnote">auto-true once an allowlist is declared</em></span>
+                </div>
+                <div class="subrow inline">
+                  <label for="embit"><code>egress_mbit</code> <em>may only lower the host default</em></label>
+                  <input type="number" id="embit" class="tin narrow" min="1" placeholder="—">
+                </div>
+              </div>
+
+              <div class="sub" id="sub-inbound" hidden>
+                <div class="subrow inline">
+                  <label for="iport"><code>inbound_port</code> <em class="req">required · 1024–65535</em></label>
+                  <input type="number" id="iport" class="tin narrow" min="1024" max="65535" value="8080">
+                </div>
+                <div class="subrow">
+                  <label for="iroutes"><code>inbound_routes</code> <em>omitted = expose nothing</em></label>
+                  <input type="text" id="iroutes" class="tin" placeholder="/api/*, /healthz" autocomplete="off">
+                </div>
+                <div class="subrow inline triple">
+                  <span><label for="irps"><code>inbound_rps</code></label><input type="number" id="irps" class="tin narrow" min="1" placeholder="—"></span>
+                  <span><label for="iburst"><code>inbound_burst</code></label><input type="number" id="iburst" class="tin narrow" min="1" placeholder="—"></span>
+                  <span><label for="imax"><code>max_concurrent</code></label><input type="number" id="imax" class="tin narrow" min="1" placeholder="—"></span>
+                </div>
+                <p class="subnote">Rate fields clamp to the host ceiling — a tenant may only lower them. <code>max_concurrent</code> defaults to <code>round(per_vcpu × preset.vcpu)</code>.</p>
+              </div>
+            </div>
+            <div class="axis">
+              <div class="axis-h"><dfn>residency</dfn><i>Who owns the VM’s lifetime?</i></div>
+              <div class="opts" data-axis="residency">
+                <button class="opt" type="button" data-v="auto">auto</button>
+                <button class="opt" type="button" data-v="pinned">pinned</button>
+              </div>
+            </div>
+            <div class="axis">
+              <div class="axis-h"><dfn>storage_mib</dfn><i>Workspace per unit?</i></div>
+              <div class="rangerow">
+                <input type="range" id="stor" min="25" max="1024" step="1" value="25" aria-label="storage_mib">
+                <span class="rangeval" id="storv">25 MiB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><b>Platform derives</b><span>you never set this</span></div>
+          <p class="ilk" id="ilk"><b id="ilkhead">Rejected at deploy</b><span id="ilktext"></span></p>
+          <p class="wrn" id="wrn"></p>
+          <div class="fpline">
+            <k>boot_fingerprint</k><span class="fp" id="fp">—</span>
+          </div>
+          <div class="derived" aria-live="polite">
+            <div class="dcell">
+              <k>lifecycle</k>
+              <v id="d-life">—</v>
+            </div>
+            <div class="dcell">
+              <k>loop shape</k>
+              <v id="d-loop">—</v>
+            </div>
+            <div class="dcell">
+              <k>on terminal</k>
+              <v id="d-term">—</v>
+            </div>
+            <div class="dcell">
+              <k>network class</k>
+              <v id="d-net">—</v>
+            </div>
+            <div class="dcell">
+              <k>heartbeat</k>
+              <v id="d-hb">—</v>
+            </div>
+            <div class="dcell">
+              <k>stream chunks</k>
+              <v id="d-st">—</v>
+            </div>
+            <div class="dcell">
+              <k>reuse child</k>
+              <v id="d-rc">—</v>
+            </div>
+            <div class="dcell">
+              <k>scratch drive</k>
+              <v id="d-sc">—</v>
+            </div>
+          </div>
+          <div class="emit-h"><span class="filename">config.ts · execution</span><span class="lbl">what you would write</span></div>
+          <pre class="emit"><code class="src" id="emit"></code></pre>
+        </div>
+      </div>
+    </div>
+  </section><section id="home-isolation" class="reveal"><div class="mid"><span class="eyebrow">02 — Blast radius</span><h2>Containers share a kernel. This doesn’t.</h2><p class="def">Every job boots its own kernel inside its own MicroVM. One tenant’s code cannot read another’s memory, reach another’s filesystem, or talk to another’s network — not because a policy forbids it, but because there is no shared surface to cross.</p></div><div class="nest stack-5 stagger"><div class="nest-l"><span class="nest-n">01</span><div class="nest-b"><h3>Separate kernel</h3><p class="def">Not a namespace on a shared one. A hypervisor boundary, not a container boundary.</p></div></div><div class="nest-l"><span class="nest-n">02</span><div class="nest-b"><h3>Nothing shared</h3><p class="def">Its own uid, its own root filesystem, its own network path. No two live VMs share any of the three.</p></div></div><div class="nest-l"><span class="nest-n">03</span><div class="nest-b"><h3>Verified, not assumed</h3><p class="def">Cross-tenant and guest→host traffic are dropped at the packet level.</p></div></div></div><div class="link-row"><a href="/platform" class="lbl link-accent">How the three boundaries nest →</a></div></section>
+
+<section id="home-write" class="reveal"><div class="mid"><span class="eyebrow">03 — Writing a task</span><h2>Two files. Export <code>run</code>. That’s the contract.</h2><p class="def">This is a complete, real task — the whole developer surface in one screen. Note the imports: there are none.</p></div><div class="split stack-5"><div class="slab"><span class="filename">config.ts</span><pre class="src"><span class="line"><span style="--shiki-light:#AF00DB;--shiki-dark:#C586C0">export</span><span style="--shiki-light:#AF00DB;--shiki-dark:#C586C0"> default</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> {</span></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">  slug:</span><span style="--shiki-light:#A31515;--shiki-dark:#CE9178"> "STREAMING-JOB"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">  execution:</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> {</span></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">    cardinality:</span><span style="--shiki-light:#A31515;--shiki-dark:#CE9178"> "one"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">    duration:</span><span style="--shiki-light:#A31515;--shiki-dark:#CE9178"> "short"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">    state:</span><span style="--shiki-light:#A31515;--shiki-dark:#CE9178"> "independent"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">    interaction:</span><span style="--shiki-light:#A31515;--shiki-dark:#CE9178"> "continuous"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">    network:</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> { </span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">type:</span><span style="--shiki-light:#A31515;--shiki-dark:#CE9178"> "egress"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> },</span></span>
+<span class="line"><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">  },</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">  run:</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> {</span></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">    payload:</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> { </span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">q:</span><span style="--shiki-light:#A31515;--shiki-dark:#CE9178"> "war"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> },</span></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">    timeout_sec:</span><span style="--shiki-light:#098658;--shiki-dark:#B5CEA8"> 15</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
+<span class="line"><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">  },</span></span>
+<span class="line"><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">};</span></span></pre></div><div class="slab"><span class="filename">index.ts</span><pre class="src"><span class="line"><span style="--shiki-light:#AF00DB;--shiki-dark:#C586C0">export</span><span style="--shiki-light:#0000FF;--shiki-dark:#569CD6"> async</span><span style="--shiki-light:#0000FF;--shiki-dark:#569CD6"> function</span><span style="--shiki-light:#795E26;--shiki-dark:#DCDCAA"> run</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">(</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">payload</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">, </span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">ctx</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">) {</span></span>
+<span class="line"><span style="--shiki-light:#0000FF;--shiki-dark:#569CD6">  const</span><span style="--shiki-light:#0070C1;--shiki-dark:#4FC1FF"> res</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> = </span><span style="--shiki-light:#AF00DB;--shiki-dark:#C586C0">await</span><span style="--shiki-light:#795E26;--shiki-dark:#DCDCAA"> fetch</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">(</span></span>
+<span class="line"><span style="--shiki-light:#A31515;--shiki-dark:#CE9178">    `https://api.datamuse.com/sug?s=…`</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
+<span class="line"><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">  );</span></span>
+<span class="line"><span style="--shiki-light:#0000FF;--shiki-dark:#569CD6">  const</span><span style="--shiki-light:#0070C1;--shiki-dark:#4FC1FF"> json</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> = </span><span style="--shiki-light:#AF00DB;--shiki-dark:#C586C0">await</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE"> res</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">.</span><span style="--shiki-light:#795E26;--shiki-dark:#DCDCAA">json</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">();</span></span>
+<span class="line"><span style="--shiki-light:#0000FF;--shiki-dark:#569CD6">  const</span><span style="--shiki-light:#0070C1;--shiki-dark:#4FC1FF"> top</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> = </span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">json</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">.</span><span style="--shiki-light:#795E26;--shiki-dark:#DCDCAA">map</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">((</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">w</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">) </span><span style="--shiki-light:#0000FF;--shiki-dark:#569CD6">=></span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE"> w</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">.</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">word</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">).</span><span style="--shiki-light:#795E26;--shiki-dark:#DCDCAA">slice</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">(</span><span style="--shiki-light:#098658;--shiki-dark:#B5CEA8">0</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">, </span><span style="--shiki-light:#098658;--shiki-dark:#B5CEA8">5</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#AF00DB;--shiki-dark:#C586C0">  for</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> (</span><span style="--shiki-light:#0000FF;--shiki-dark:#569CD6">const</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> [</span><span style="--shiki-light:#0070C1;--shiki-dark:#4FC1FF">i</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">, </span><span style="--shiki-light:#0070C1;--shiki-dark:#4FC1FF">suggestion</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">] </span><span style="--shiki-light:#0000FF;--shiki-dark:#569CD6">of</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE"> top</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">.</span><span style="--shiki-light:#795E26;--shiki-dark:#DCDCAA">entries</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">()) {</span></span>
+<span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">    ctx</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">.</span><span style="--shiki-light:#795E26;--shiki-dark:#DCDCAA">chunk</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">({ </span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">suggestion</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">, </span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">i</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> });</span></span>
+<span class="line"><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#AF00DB;--shiki-dark:#C586C0">  return</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> { </span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">q:</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE"> payload</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">.</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">q</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">, </span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">count:</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE"> top</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">.</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">length</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> };</span></span>
+<span class="line"><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">}</span></span></pre></div></div><div class="slab stack-4"><span class="filename">A real session</span><pre class="term"><span class="pr">$</span> ignitify task:create STREAMING-JOB
+<span class="ok">✓ Task Registered</span>
+<span class="dim">task_id</span>      019fdebb-171e-7198-a812-a755d67e0aa2
+<span class="dim">resource_id</span>  tsk_EZWekgdGJSLt
+
+<span class="pr">$</span> ignitify task:deploy STREAMING-JOB
+<span class="ok">✓ Deployment Created</span>
+<span class="dim">deployment_id</span>  019fdebb-199b-75cc-8a15-650f3de2c717
+<span class="dim">status</span>         READY
+<span class="dim">reused</span>         false
+<span class="dim">content_hash</span>   sha256:fbb55da6adde4995…
+
+<span class="pr">$</span> ignitify task:run STREAMING-JOB
+<span class="ok">✓ Run Submitted</span>
+<span class="dim">run_id</span>       019fdebb-1ce5-7048-bc36-ce8821f02c08
+<span class="dim">status</span>       PENDING</pre></div><div class="grid g3 stack-5 stagger"><div class="card up"><h3>Content-addressed</h3><p class="def">Deployments are immutable and hashed. Redeploying an unchanged bundle reuses the existing image.</p></div><div class="card up"><h3>Image integrity</h3><p class="def">The code image is read-only inside the guest. It is verified before boot, not trusted after it.</p></div><div class="card up"><h3>Secrets</h3><p class="def">Only secret <em>names</em> enter the bundle. Values are injected at run time and never stored with your code.</p></div></div></section><section id="home-toolkit" class="band band-well reveal"><div class="mid"><span class="eyebrow">04 — Your toolkit</span><h2>Start with nothing installed.</h2><p class="def">What you get today, and what is honestly still ahead.</p></div><div class="grid g3 stack-5 stagger"><div class="card up"><h3>Easy to start</h3><p class="def">Export <span class="mono">run()</span> — that is the contract. No package, no client, no framework.</p><span class="tag soon">An SDK for logs, metrics and more — soon</span></div><div class="card up"><h3>TypeScript &amp; JavaScript</h3><p class="def">The runtime is Node 22. Your task is plain TS or JS.</p><span class="tag soon">Python — on the roadmap</span></div><div class="card up"><h3>One CLI</h3><p class="def"><span class="mono">ignitify</span> — 24 commands covering tasks, deployments, runs and inspection.</p></div><div class="card up"><h3>Telemetry that leaves the box</h3><p class="def">Runs emit structured events to pluggable sinks.</p><span class="tag soon">Custom Observability — coming soon</span></div><div class="card up"><h3>Per-run timelines</h3><p class="def">Every run leaves a per-tenant, append-only timeline of what happened and when.</p><span class="tag soon">Visualizer — coming soon</span></div></div></section><section id="home-platform" class="reveal"><div class="mid"><span class="eyebrow">05 — Many tenants, one host</span><h2>One noisy tenant can’t take the host down with it.</h2><p class="def">Running this for other people is a different job from running it for yourself. The controls for that are first-class, not bolted on.</p></div><div class="grid g3 stack-5 stagger"><div class="card up"><h3>Tiers, not overrides</h3><p class="def">Every limit a tenant has comes from a tier they are granted. A one-off deal is a new tier, never an edited row.</p></div><div class="card up"><h3>Fair queueing</h3><p class="def">One tenant’s deploy storm cannot starve another’s build. The work queue claims fairly across tenants.</p></div><div class="card up"><h3>Honest capacity</h3><p class="def">Entitlement and room are separate ledgers, so “allowed” and “available” are never conflated.</p></div></div></section><!-- ════ 06 FLOW ════ -->
+
+<section id="home-flow" class="reveal">
+  <div class="mid"><span class="eyebrow">06 — Deploy and scale</span>
+    <h2>Three steps on your machine. <br> Then one crossing.</h2>
+  </div>
+
+  <!-- One rail, one seam. The crossing is the widest mark in the picture because it
+         is the section's headline; everything else is a tick on a single continuous
+         line. No frames, no fills, no radii — see FLOW-SPEC.md §3-§4. -->
+  <div class="flow" id="flow">
+
+    <div class="fzone" aria-hidden="true">
+      <span class="fz-l">No network · no API key</span>
+      <span class="fz-rule"></span>
+      <span class="fz-r">Your machine</span>
+    </div>
+
+    <ol class="flow-track" aria-label="Three steps that run on your machine — no network and no API key">
+      <li class="fst" data-i="0">
+        <span class="fst-n">01</span>
+        <h3>task:create</h3>
+        <span class="fst-w">offline</span>
+        <p class="def">Registers the slug and scaffolds <span class="mono">config.ts</span> and <span class="mono">index.ts</span>.</p>
+      </li>
+      <li class="fst" data-i="1">
+        <span class="fst-n">02</span>
+        <h3>task:validate</h3>
+        <span class="fst-w">offline</span>
+        <p class="def">Checks the execution nature and the seven axes. No server, no key.</p>
+      </li>
+      <li class="fst" data-i="2">
+        <span class="fst-n">03</span>
+        <h3>task:bundle</h3>
+        <span class="fst-w">offline</span>
+        <p class="def">Compiles and packs a tarball. Still local — nothing has been uploaded.</p>
+      </li>
+    </ol>
+
+    <div class="fzone wire" aria-hidden="true">
+      <span class="fz-l">The wire — crossed once</span>
+      <span class="fz-rule"></span>
+      <span class="fz-r">Ignitify</span>
+    </div>
+
+    <ol class="flow-track host" start="4" aria-label="Three steps that run on the Ignitify platform, after the bundle crosses the wire">
+      <li class="fst cross" data-i="3">
+        <span class="fst-n">04</span>
+        <h3>task:deploy</h3>
+        <span class="fst-w">crosses the wire</span>
+        <p class="def">Uploads the bundle and builds a read-only ext4 image. <strong>This is where the API key is first needed.</strong></p>
+      </li>
+      <li class="fst" data-i="4">
+        <span class="fst-n">05</span>
+        <h3>task:run</h3>
+        <span class="fst-w">on the platform</span>
+        <p class="def">Boots a MicroVM against that image and executes your <span class="mono">run()</span>.</p>
+      </li>
+      <li class="fst" data-i="5">
+        <span class="fst-n">06</span>
+        <h3>run:get</h3>
+        <span class="fst-w">on the platform</span>
+        <p class="def">Status, result, and the last streamed chunk. Deploy once, then run as often as you like.</p>
+      </li>
+    </ol>
+
+    <!-- The return path. Dashed because it is not a step, and aria-hidden because
+           step 06 already says it in prose. -->
+    <div class="fl-return" aria-hidden="true">
+      <span class="fz-rule"></span>
+      <span class="tiny">deploy once · run many</span>
+    </div>
+  </div>
+</section><section class="closing reveal" id="home-closing"><div class="cta-row"><a class="btn solid live lg" href="/signin">Start free</a><a class="btn ghost lg" href="/docs">Read the docs</a></div></section></main>
+<footer class="ft"><div class="ft-in"><div class="ft-cols"><div class="ft-col"><div class="mark" style="margin-bottom:4px"><span class="spark" aria-hidden="true"></span><span class="wordmark">Ignitify<span>.dev</span></span></div><p class="tiny" style="color:var(--graphite);max-width:26ch">Untrusted code, one Firecracker MicroVM per job.</p></div><div class="ft-col"><h4>Product</h4><a href="/docs">Docs</a><a href="/platform">Platform</a><a href="/pricing">Pricing</a></div><div class="ft-col"><h4>Company</h4><a href="/blog">Blog</a><a href="/about">About</a><a href="/contact">Contact</a></div><div class="ft-col"><h4>Legal</h4><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/dpa">DPA</a></div><div class="ft-col"><h4>Trust</h4><a href="/status">Status</a></div></div></div><div class="ft-bot"><span class="tiny">© 2026 Ignitify</span></div></footer></div><script type="module">(function(){var e=document.documentElement,t=window.matchMedia(`(prefers-reduced-motion: reduce)`),n=document.querySelectorAll(`.reveal`);function r(){for(var e=0;e<n.length;e++)n[e].classList.add(`seated`)}if(t.matches||!(`IntersectionObserver`in window))r();else{for(var i=new IntersectionObserver(function(e){for(var t=0;t<e.length;t++)e[t].isIntersecting&&(e[t].target.classList.add(`seated`),i.unobserve(e[t].target))},{rootMargin:`0px 0px -12% 0px`,threshold:.02}),a=0;a<n.length;a++)i.observe(n[a]);requestAnimationFrame(function(){for(var e=0;e<n.length;e++)n[e].getBoundingClientRect().top<window.innerHeight*.9&&n[e].classList.add(`seated`)})}t.addEventListener&&t.addEventListener(`change`,function(e){e.matches&&r()});var o=document.getElementById(`hdr`),s=!1;function c(){s||(s=!0,requestAnimationFrame(function(){s=!1;var n=window.scrollY||window.pageYOffset||0;if(o){var r=n>24?`true`:`false`;o.getAttribute(`data-scrolled`)!==r&&o.setAttribute(`data-scrolled`,r)}if(!t.matches){var i=document.documentElement.scrollHeight-window.innerHeight,a=i>0?n/i:0;e.style.setProperty(`--progress`,a<0?0:a>1?1:a)}}))}window.addEventListener(`scroll`,c,{passive:!0}),window.addEventListener(`resize`,c,{passive:!0}),c()})();</script><script type="module">var e=document.documentElement;document.getElementById(`bt`)?.addEventListener(`click`,()=>{let t=window.matchMedia(`(prefers-color-scheme:dark)`).matches,n=(e.getAttribute(`data-theme`)||(t?`dark`:`light`))===`dark`?`light`:`dark`;e.setAttribute(`data-theme`,n);try{localStorage.setItem(`ig-theme`,n)}catch{}});var t=document.getElementById(`burger`),n=document.getElementById(`sitenav`);if(t&&n){let e=e=>{t.setAttribute(`aria-expanded`,String(e)),n.setAttribute(`data-open`,String(e))};t.addEventListener(`click`,()=>{e(t.getAttribute(`aria-expanded`)!==`true`)}),document.addEventListener(`keydown`,n=>{n.key===`Escape`&&t.getAttribute(`aria-expanded`)===`true`&&(e(!1),t.focus())}),window.matchMedia(`(min-width:861px)`).addEventListener(`change`,t=>{t.matches&&e(!1)})}</script></body></html><script type="module" src="/_astro/index.astro_astro_type_script_index_0_lang.DFpBfGxH.js"></script>

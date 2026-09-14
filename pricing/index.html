@@ -1,0 +1,129 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pricing — Ignitify</title><meta name="description" content="Five rungs; three of them change what your code can do. Prices are draft and no figure is published."><link rel="canonical" href="https://ignitify.dev/pricing/"><script>
+    (function () {
+      try {
+        var t = localStorage.getItem('ig-theme');
+        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { /* private mode — fall back to prefers-color-scheme */ }
+      // The `js` class is what gates every scroll reveal. Without it the
+      // .reveal rules never match, so a JS-off visitor gets the full page at
+      // full opacity rather than a blank column — a reveal that can strand
+      // content invisible is a content bug wearing an animation's clothes.
+      // Set here, before first paint, so revealed sections never flash in.
+      document.documentElement.classList.add('js');
+    })();
+  </script><link rel="stylesheet" href="/_astro/Footer.DQlbbKkg.css"></head><body><a class="skip" href="#main">Skip to content</a><header class="hdr" id="hdr" data-scrolled="false"><div class="hdr-in"><a class="mark" href="/"><span class="spark" aria-hidden="true"></span><span class="wordmark">Ignitify<span>.dev</span></span></a><nav class="nav" id="sitenav" data-open="false"><a href="/docs">Docs</a><a href="/platform">Platform</a><a href="/pricing" aria-current="page">Pricing</a><a href="/blog">Blog</a></nav><span class="sp"></span><div class="hdr-cta"><button class="themetog" type="button" id="bt" aria-label="Switch between light and dark theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="3.4"></circle><path d="M8 .8v2M8 13.2v2M.8 8h2M13.2 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M13.1 2.9l-1.4 1.4M4.3 11.7l-1.4 1.4"></path></svg></button><a class="btn solid live" href="/signin">Start free</a><button class="burger" type="button" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="sitenav"><span></span><span></span><span></span></button></div></div></header><div id="main" tabindex="-1"><main>
+
+     <!-- ════ PRICING · re-composed 2026-08-25. See PRICING-SPEC.md ════
+       The page argues its own lede: most of the ladder is QUANTITY, three
+       rungs are CAPABILITY. Elevation and lemon are what make those two
+       look different from each other, here and in the table below.
+
+         ground  the argument   hero, lede, the two policy columns
+         well    where you act  the ladder band
+         plate   what's offered each plan, the comparison sheet
+
+       LEMON HAS A FACTUAL PRECONDITION on this page, checkable against
+       tools/host-capacity/_pricing/v1/: a lemon edge appears on a plan
+       IFF it grants a capability flag the rung below it does not (starter,
+       team, pro — and NOT enterprise, which presentation.yaml itself says
+       "unlocks NO new capability flag over pro"), and on a table row IFF the
+       row is a capability rather than a quantity. Three cards, three rungs,
+       one fact. ⌛ The headline no longer names them — it now says what does
+       NOT change between plans — so the three-ness is carried by the cards,
+       the lede and the table, and no longer by the h1.
+       ════════════════════════════════════════════════════════════════════ -->
+
+     <section class="hero-sec reveal" id="pricing-hero">
+          <div class="mid">
+               <div class="eyebrow">Plans</div>
+               <!-- ⌛ 2026-09-14. The h1 used to be "Five tiers. Three of them change
+           what your code can do" — accurate (exactly three rungs flip a
+           capability flag) but it described the LADDER, which is what the lede
+           below already does at length.
+           This says what the ladder does NOT change, which is the thing a buyer
+           is quietly asking on a pricing page and the one answer that is the
+           same on every row. Checkable against _pricing/v1/: no tier weakens
+           the boundary — may_use_secrets and may_use_egress are true on all
+           five, and one MicroVM per job is a platform invariant rather than a
+           tier feature. Only HOW MANY at once changes (1 · 3 · 6 · 12 · 24).
+           It is also D3's position — reframe on isolation, name no rivals.
+           <em> takes the site-wide lemon marker, as on home's "its own
+           <em>kernel</em>". -->
+               <h1>The isolation is the same on <em>every</em>&nbsp;plan.</h1>
+               <!-- Centred as a BLOCK, set LEFT. .mid centres its text, which is right
+           for the one- and two-line decks it was built for; this runs several
+           lines and centred prose gives the reader a ragged left edge to hunt
+           for on every return sweep.
+           ⌛ 2026-09-14: was two paragraphs — one naming which rungs unlock
+           what, one on enforcement and the 429/503 split. Merged and made
+           general: the cards and the comparison sheet below already say which
+           rung does what, per tier and per row, so naming them here said it a
+           third time and dated the lede to the current ladder. -->
+               <p class="lede setleft">Most of this ladder is quantity — more VMs, more tasks, more throughput. A few rungs go further and unlock something your code cannot do on the plan below; those are the ones worth moving for. Every limit comes from the tier you are on, granted whole and enforced by the platform rather than configured per tenant, so what you can run is a property of your plan and not of who asked. <b>Prices are not published yet.</b></p>
+
+          </div>
+     </section>
+
+     <section class="band band-well reveal" id="pricing-ladder"><div class="plans stagger"><div class="plan"><div class="phead"><span class="prung" aria-hidden="true">01</span><h3>Free</h3></div><div class="price"><b class="tbd" aria-hidden="true">$00</b><span class="sr">Price not yet published</span><span class="tbd-note">Price to be announced</span></div><p class="blurb">Run your first isolated job in a minute. Outbound network included, no card.</p><ul class="pfeat"><li>1 concurrent VM</li><li>3 tasks · 10 secrets</li><li>5 min max run</li><li class="key">Outbound network — 5 GB/month</li><li class="off">No webhooks, no retries</li></ul><span class="ppreset">C1.micro</span></div><div class="plan unlock"><div class="phead"><span class="prung" aria-hidden="true">02</span><h3>Starter</h3></div><div class="price"><b class="tbd" aria-hidden="true">$00</b><span class="sr">Price not yet published</span><span class="tbd-note">Price to be announced</span></div><p class="blurb">For jobs that need to be called back, and to stop paying the boot cost every time.</p><ul class="pfeat"><li>3 concurrent VMs · 3 warm</li><li>15 tasks · 25 secrets</li><li>30 min max run</li><li class="key">Webhooks — be called back</li><li class="key">Warm reuse · automatic retries</li></ul><span class="ppreset">C1.micro · C2.small · C5.net</span></div><div class="plan unlock"><div class="phead"><span class="prung" aria-hidden="true">03</span><h3>Team</h3></div><div class="price"><b class="tbd" aria-hidden="true">$00</b><span class="sr">Price not yet published</span><span class="tbd-note">Price to be announced</span></div><p class="blurb">More room to run, and the first taste of a public inbound endpoint.</p><ul class="pfeat"><li>6 concurrent VMs · 5 warm</li><li>40 tasks · 50 secrets</li><li>1 h max run · 30-day retention</li><li class="key">Inbound — a public HTTPS hostname</li><li class="off">No pinning</li></ul><span class="ppreset">C1.micro · C2.small · C5.net</span></div><div class="plan unlock feature"><div class="phead"><span class="prung" aria-hidden="true">04</span><h3>Pro</h3></div><div class="price"><b class="tbd" aria-hidden="true">$00</b><span class="sr">Price not yet published</span><span class="tbd-note">Price to be announced</span></div><p class="blurb">Pinned VMs, continuous workloads, six-hour runs and the memory-heavy preset.</p><ul class="pfeat"><li>12 concurrent VMs · 10 warm</li><li>100 tasks · 100 secrets</li><li>6 h max run · 90-day retention</li><li class="key">4 pinned VMs — permanent standby</li><li class="key">Continuous workloads · C4.mem</li></ul><span class="ppreset">+ C4.mem</span></div><div class="plan"><div class="phead"><span class="prung" aria-hidden="true">05</span><h3>Enterprise</h3></div><div class="price"><b class="tbd" aria-hidden="true">$00</b><span class="sr">Price not yet published</span><span class="tbd-note">Price to be announced</span></div><p class="blurb">Scale, every preset including compute-heavy, and unmetered egress.</p><ul class="pfeat"><li>24 concurrent VMs · 12 pinned</li><li>Unlimited tasks, secrets, keys</li><li>12 h max run · 365-day retention</li><li class="key">Unmetered egress</li><li class="key">C3.compute — the largest preset</li></ul><span class="ppreset">All five presets</span></div></div></section>
+
+  <section class="reveal" id="pricing-compare">
+    <div class="mid">
+      <h2 class="sh" id="cmp-h">Compare everything</h2>
+      <p class="def">Every row is read straight from the published plan definitions. A dash means the capability is not granted — not that the limit is zero.</p>
+    </div>
+    <!-- .tw no longer clips vertically. It carried max-height:min(72vh,660px)
+         purely to give `thead th{position:sticky;top:0}` a scrollport, because
+         overflow:auto had made .tw the scroller — a workaround for the real
+         bug, which was body{overflow-x:hidden} stopping the VIEWPORT from
+         being the scroll container at all (see sk-styles.css). With that
+         fixed, the heads stick to the viewport and 37 rows read as 37 rows.
+         Below 600px the table's 527px intrinsic minimum no longer fits, so the
+         horizontal scroller comes back and sticky goes away with it. -->
+    <div class="tw">
+      <table class="cmp" aria-labelledby="cmp-h">
+<!-- ════ THE COMPARISON SHEET IS NOT IN THIS FILE ════
+       Its ~185 entitlement values are rendered at build time from
+       tools/host-capacity/_pricing/v1/ by src/components/PricingTable.astro,
+       so a limit exists in exactly one place (DESIGN-NOTES §2, class C).
+       Row labels, grouping and the lemon-edge rule live in
+       src/lib/pricing-table.ts. Nothing here needs editing when a limit moves.
+       ════════════════════════════════════════════════════════════════════ -->
+<thead><tr><th scope="col">Limit</th><th scope="col">Free</th><th scope="col">Starter</th><th scope="col">Team</th><th scope="col">Pro</th><th scope="col">Enterprise</th></tr></thead><tbody class="grp"><tr class="gh"><th scope="colgroup" colspan="6">Concurrency</th></tr><tr><th scope="row">Concurrent VMs</th><td class="num">1</td><td class="num">3</td><td class="num">6</td><td class="num">12</td><td class="num">24</td></tr><tr class="hl"><th scope="row">Pinned VMs</th><td class="num n"><span class="sr">Not included</span><span aria-hidden="true">—</span></td><td class="num n"><span class="sr">Not included</span><span aria-hidden="true">—</span></td><td class="num n"><span class="sr">Not included</span><span aria-hidden="true">—</span></td><td class="num">4</td><td class="num">12</td></tr><tr><th scope="row">Warm VMs</th><td class="num n"><span class="sr">Not included</span><span aria-hidden="true">—</span></td><td class="num">3</td><td class="num">5</td><td class="num">10</td><td class="num">20</td></tr></tbody><tbody class="grp"><tr class="gh"><th scope="colgroup" colspan="6">What you can create</th></tr><tr><th scope="row">Tasks</th><td class="num">3</td><td class="num">15</td><td class="num">40</td><td class="num">100</td><td class="num">Unlimited</td></tr><tr><th scope="row">Deployments</th><td class="num">2</td><td class="num">10</td><td class="num">25</td><td class="num">50</td><td class="num">Unlimited</td></tr><tr><th scope="row">Secrets</th><td class="num">10</td><td class="num">25</td><td class="num">50</td><td class="num">100</td><td class="num">Unlimited</td></tr><tr><th scope="row">API keys</th><td class="num">1</td><td class="num">3</td><td class="num">5</td><td class="num">10</td><td class="num">Unlimited</td></tr><tr class="hl"><th scope="row">Webhooks</th><td class="num n"><span class="sr">Not included</span><span aria-hidden="true">—</span></td><td class="num">3</td><td class="num">8</td><td class="num">20</td><td class="num">Unlimited</td></tr></tbody><tbody class="grp"><tr class="gh"><th scope="colgroup" colspan="6">Rate</th></tr><tr><th scope="row">Runs / minute</th><td class="num">10</td><td class="num">60</td><td class="num">150</td><td class="num">300</td><td class="num">1,200</td></tr><tr><th scope="row">Runs / hour</th><td class="num">120</td><td class="num">1,000</td><td class="num">4,000</td><td class="num">10,000</td><td class="num">50,000</td></tr><tr><th scope="row">Runs / day</th><td class="num">500</td><td class="num">10,000</td><td class="num">40,000</td><td class="num">100,000</td><td class="num">Unlimited</td></tr><tr><th scope="row">Deployments / minute</th><td class="num">3</td><td class="num">5</td><td class="num">10</td><td class="num">15</td><td class="num">60</td></tr><tr><th scope="row">API requests / sec</th><td class="num">5</td><td class="num">25</td><td class="num">50</td><td class="num">100</td><td class="num">500</td></tr></tbody><tbody class="grp"><tr class="gh"><th scope="colgroup" colspan="6">Size &amp; time</th></tr><tr><th scope="row">Max run duration</th><td class="num">5 min</td><td class="num">30 min</td><td class="num">1 h</td><td class="num">6 h</td><td class="num">12 h</td></tr><tr><th scope="row">Max VM lifetime</th><td class="num">10 min</td><td class="num">1 h</td><td class="num">2 h</td><td class="num">12 h</td><td class="num">24 h</td></tr><tr><th scope="row">Scratch storage</th><td class="num">64 MiB</td><td class="num">512 MiB</td><td class="num">2 GiB</td><td class="num">4 GiB</td><td class="num">16 GiB</td></tr><tr><th scope="row">Payload</th><td class="num">64 KiB</td><td class="num">1 MiB</td><td class="num">2 MiB</td><td class="num">4 MiB</td><td class="num">4 MiB</td></tr><tr><th scope="row">Result</th><td class="num">64 KiB</td><td class="num">1 MiB</td><td class="num">2 MiB</td><td class="num">4 MiB</td><td class="num">4 MiB</td></tr><tr><th scope="row">Deployment image</th><td class="num">256 MiB</td><td class="num">1 GB</td><td class="num">2 GB</td><td class="num">5 GB</td><td class="num">10 GB</td></tr><tr><th scope="row">Retention (days)</th><td class="num">3</td><td class="num">14</td><td class="num">30</td><td class="num">90</td><td class="num">365</td></tr></tbody><tbody class="grp"><tr class="gh"><th scope="colgroup" colspan="6">Network</th></tr><tr class="hl"><th scope="row">Egress bandwidth</th><td class="num">50 Mbit</td><td class="num">50 Mbit</td><td class="num">100 Mbit</td><td class="num">100 Mbit</td><td class="num">100 Mbit</td></tr><tr><th scope="row">Monthly egress</th><td class="num">5 GB</td><td class="num">100 GB</td><td class="num">300 GB</td><td class="num">1 TB</td><td class="num">Unmetered</td></tr><tr><th scope="row">Connections per VM</th><td class="num">32</td><td class="num">32</td><td class="num">32</td><td class="num">128</td><td class="num">128</td></tr><tr><th scope="row">DNS queries / sec</th><td class="num">25</td><td class="num">25</td><td class="num">25</td><td class="num">100</td><td class="num">100</td></tr><tr class="hl"><th scope="row">Inbound endpoint</th><td class="num n"><span class="sr">Not included</span><span aria-hidden="true">—</span></td><td class="num n"><span class="sr">Not included</span><span aria-hidden="true">—</span></td><td class="num">50 rps</td><td class="num">100 rps</td><td class="num">1,000 rps</td></tr><tr><th scope="row">Inbound concurrent</th><td class="num n"><span class="sr">Not included</span><span aria-hidden="true">—</span></td><td class="num n"><span class="sr">Not included</span><span aria-hidden="true">—</span></td><td class="num">10</td><td class="num">25</td><td class="num">64</td></tr></tbody><tbody class="grp"><tr class="gh"><th scope="colgroup" colspan="6">Capabilities</th></tr><tr><th scope="row">Pin a VM</th><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num y">Yes</td><td class="num y">Yes</td></tr><tr><th scope="row">Outbound network</th><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td></tr><tr><th scope="row">Public inbound</th><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td></tr><tr><th scope="row">Secrets</th><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td></tr><tr><th scope="row">Webhooks</th><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td></tr><tr><th scope="row">Automatic retries</th><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td></tr><tr><th scope="row">Long duration</th><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td></tr><tr><th scope="row">Continuous workloads</th><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num y">Yes</td><td class="num y">Yes</td></tr><tr><th scope="row">Warm reuse</th><td class="num n"><span class="sr">No</span><span aria-hidden="true">—</span></td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td><td class="num y">Yes</td></tr><tr><th scope="row">Retry attempts</th><td class="num">1</td><td class="num">2</td><td class="num">3</td><td class="num">3</td><td class="num">3</td></tr><tr class="presets"><th scope="row">VM sizes</th><td class="num">C1.micro</td><td class="num">C1.micro · C2.small · C5.net</td><td class="num">C1.micro · C2.small · C5.net</td><td class="num">C1.micro · C2.small · C4.mem · C5.net</td><td class="num">All five</td></tr></tbody></table>
+</div>
+</section>
+
+<!-- Two parallel properties, read across. REDESIGN-SPEC §9c landed on ruled
+       columns for exactly this shape: the box added nothing but edges, and
+       this page already spends its edges on plates and a sheet. -->
+<section class="reveal" id="pricing-policy">
+  <div class="two stagger">
+    <div class="col">
+      <h3>What happens when you hit a limit</h3>
+      <p class="muted">You get a <b>429</b> with the reason, the limit, and what you actually used — and upgrading fixes it.</p>
+      <p class="muted">What you <em>won’t</em> get is a 429 because the host is busy. That case returns <b>503</b>, or the run is simply queued and dispatched when a slot frees. A transient full host is never reported as a plan problem, so you’re
+        never told to upgrade when all you needed was to wait.</p>
+      <p class="stack-4"><a class="lbl link-accent" href="/docs">Error reference →</a></p>
+    </div>
+    <div class="col">
+      <h3>Changing plans</h3>
+      <p class="muted"><b>Your plan is pinned at the version you were granted.</b> Plans are never edited in place — a price or limit change publishes a new version, and existing customers stay on theirs until they choose to move.</p>
+      <p class="muted">Grandfathering isn’t a policy anyone has to remember here; it’s how the tier system is built.</p>
+    </div>
+  </div>
+</section>
+
+<!-- The base plate. Identical to / and /platform — this page used to stop
+       dead into the footer. NO per-plan CTA exists above, deliberately:
+       DESIGN-NOTES §1 rules that signup and checkout are not backend
+       capabilities yet, and a "choose this plan" button under a blurred price,
+       wired to a route with no form, is the exact failure that section is
+       about. One honest call to action, at the end. -->
+<section class="closing reveal" id="pricing-closing">
+  <div class="cta-row">
+    <a class="btn solid live lg" href="/signin">Start free</a>
+    <a class="btn ghost lg" href="/docs">Read the docs</a>
+    <span class="lbl">ignitify.dev</span>
+  </div>
+</section>
+
+</main><footer class="ft"><div class="ft-in"><div class="ft-cols"><div class="ft-col"><div class="mark" style="margin-bottom:4px"><span class="spark" aria-hidden="true"></span><span class="wordmark">Ignitify<span>.dev</span></span></div><p class="tiny" style="color:var(--graphite);max-width:26ch">Untrusted code, one Firecracker MicroVM per job.</p></div><div class="ft-col"><h4>Product</h4><a href="/docs">Docs</a><a href="/platform">Platform</a><a href="/pricing">Pricing</a></div><div class="ft-col"><h4>Company</h4><a href="/blog">Blog</a><a href="/about">About</a><a href="/contact">Contact</a></div><div class="ft-col"><h4>Legal</h4><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/dpa">DPA</a></div><div class="ft-col"><h4>Trust</h4><a href="/status">Status</a></div></div></div><div class="ft-bot"><span class="tiny">© 2026 Ignitify</span></div></footer></div><script type="module">(function(){var e=document.documentElement,t=window.matchMedia(`(prefers-reduced-motion: reduce)`),n=document.querySelectorAll(`.reveal`);function r(){for(var e=0;e<n.length;e++)n[e].classList.add(`seated`)}if(t.matches||!(`IntersectionObserver`in window))r();else{for(var i=new IntersectionObserver(function(e){for(var t=0;t<e.length;t++)e[t].isIntersecting&&(e[t].target.classList.add(`seated`),i.unobserve(e[t].target))},{rootMargin:`0px 0px -12% 0px`,threshold:.02}),a=0;a<n.length;a++)i.observe(n[a]);requestAnimationFrame(function(){for(var e=0;e<n.length;e++)n[e].getBoundingClientRect().top<window.innerHeight*.9&&n[e].classList.add(`seated`)})}t.addEventListener&&t.addEventListener(`change`,function(e){e.matches&&r()});var o=document.getElementById(`hdr`),s=!1;function c(){s||(s=!0,requestAnimationFrame(function(){s=!1;var n=window.scrollY||window.pageYOffset||0;if(o){var r=n>24?`true`:`false`;o.getAttribute(`data-scrolled`)!==r&&o.setAttribute(`data-scrolled`,r)}if(!t.matches){var i=document.documentElement.scrollHeight-window.innerHeight,a=i>0?n/i:0;e.style.setProperty(`--progress`,a<0?0:a>1?1:a)}}))}window.addEventListener(`scroll`,c,{passive:!0}),window.addEventListener(`resize`,c,{passive:!0}),c()})();</script><script type="module">var e=document.documentElement;document.getElementById(`bt`)?.addEventListener(`click`,()=>{let t=window.matchMedia(`(prefers-color-scheme:dark)`).matches,n=(e.getAttribute(`data-theme`)||(t?`dark`:`light`))===`dark`?`light`:`dark`;e.setAttribute(`data-theme`,n);try{localStorage.setItem(`ig-theme`,n)}catch{}});var t=document.getElementById(`burger`),n=document.getElementById(`sitenav`);if(t&&n){let e=e=>{t.setAttribute(`aria-expanded`,String(e)),n.setAttribute(`data-open`,String(e))};t.addEventListener(`click`,()=>{e(t.getAttribute(`aria-expanded`)!==`true`)}),document.addEventListener(`keydown`,n=>{n.key===`Escape`&&t.getAttribute(`aria-expanded`)===`true`&&(e(!1),t.focus())}),window.matchMedia(`(min-width:861px)`).addEventListener(`change`,t=>{t.matches&&e(!1)})}</script></body></html>
