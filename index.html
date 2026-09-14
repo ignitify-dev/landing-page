@@ -13,18 +13,11 @@
     })();
   </script><link rel="stylesheet" href="/_astro/Footer.DQlbbKkg.css"></head><body><a class="skip" href="#main">Skip to content</a><header class="hdr" id="hdr" data-scrolled="false"><div class="hdr-in"><a class="mark" href="/"><span class="spark" aria-hidden="true"></span><span class="wordmark">Ignitify<span>.dev</span></span></a><nav class="nav" id="sitenav" data-open="false"><a href="/docs">Docs</a><a href="/platform">Platform</a><a href="/pricing">Pricing</a><a href="/blog">Blog</a></nav><span class="sp"></span><div class="hdr-cta"><button class="themetog" type="button" id="bt" aria-label="Switch between light and dark theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="3.4"></circle><path d="M8 .8v2M8 13.2v2M.8 8h2M13.2 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M13.1 2.9l-1.4 1.4M4.3 11.7l-1.4 1.4"></path></svg></button><a class="btn solid live" href="/signin">Start free</a><button class="burger" type="button" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="sitenav"><span></span><span></span><span></span></button></div></div></header><div id="main" tabindex="-1"><main>
 
-  <!-- SPLIT FOLD. Argument left, evidence right. The unit is at object scale,
-       the seal sits directly beneath it, and the manifest declares the seven
-       axes as a ruled form. Reading order is the argument, then the proof.
-       Copy is unchanged from the previous world: this is a visual replacement,
-       not a rewrite. -->
+  
   <section class="hero-sec" id="home-hero">
     <div class="fold">
       <div class="fold-arg">
-        <!-- Deliberately unnumbered. The numbered sequence 01-07 belongs to the
-             sections below; a hero that also says "01" makes two different
-             things claim the same index, and the numbering stops carrying
-             information the moment it repeats. -->
+        
         <span class="eyebrow">One unit, one kernel</span>
         <h1>Every job gets its own <em>kernel</em>.</h1>
         <p class="dek">Untrusted code, one Firecracker MicroVM per job.</p>
@@ -32,70 +25,22 @@
           You describe what the work <strong>is</strong>. Ignitify derives the machine it needs,
           boots it, and destroys it when the work is done.
         </p>
-        <!-- THE CONVERSION ACTION IS NOT HERE — it is the lemon `Start free` in
-             the header, which is sticky and therefore reachable from every point
-             in the page rather than only from the top of it. A hero button and a
-             header button pointing at the same /signin were the same offer made
-             twice, 60px apart, and the hero copy competed with the header for
-             the one filled weight the palette allows.
-             What is left are the two EXPLORE actions, and they are ordered by
-             commitment: read the contract, then drive the thing. Both are in-page
-             anchors, so neither leaves the argument. -->
-        <!-- ONE ROW, TWO WEIGHTS. These were two stacked blocks 11px apart —
-             a ghost button and a text link, the two weakest weights in the
-             system — so the column trailed off instead of resolving. They are
-             one terminal beat now.
-             `Write a task` takes INK-solid, not lemon: lemon means "live" and is
-             rationed to two filled buttons per page (the header and the closing
-             section). Ink-solid is the system's neutral primary and already
-             ships on /platform, so this restores a primary without spending the
-             accent. Same words, same order, same destinations. -->
+        
+        
         <div class="cta-row">
           <a class="btn solid lg" href="#home-write">Write a task</a>
           <a class="cta-link" href="#home-console">Try the console</a>
         </div>
       </div>
 
-      <!-- The four boundaries, drawn as the physical nesting they actually
-           are — and then RUN. This is the page's central claim rendered rather
-           than asserted: each layer is literally a DOM descendant of the one
-           outside it, so the containment is structural, not a picture of
-           containment. Drawing it as four sibling cards would assert the
-           hierarchy while contradicting it.
-
-           The rig is a lifecycle, not a diagram. A static nest can only claim
-           isolation; the interesting fact about this product is that the walls
-           are BUILT PER JOB and torn down after — which is inherently temporal
-           and cannot be shown by a still image. `data-stage` on .rig drives
-           every layer, and the JS advances it: idle → land → seal → boot →
-           run → done → reclaim, then loops. Nothing here is decorative: each
-           stage corresponds to a real step (bind, jail, boot, execute, destroy).
-
-           ACCESSIBILITY. The figure is aria-hidden and the caption carries the
-           whole argument in prose, because a screen reader announcing a
-           7-stage loop is noise, not information. Reduced-motion pins the rig
-           at the `run` stage — its most informative frame — and kills the
-           animation, so the diagram never depends on movement to be readable.
-
-           CONTRAST. Every label sits on a flat carrier (.lay-tab / .job).
-           Nothing is set directly on the corrugated shell — 12.5px text on the
-           lit rib fails WCAG in BOTH themes and no token value fixes it
-           (passing on the lit rib means failing on the shadow rib), so the
-           ribbed shells stay wordless and every text region is plated. -->
+      
       <div class="fold-ev">
-        <!-- aria-hidden moved OFF the figure and onto .rig-fig. The steps are
-             <button>s and were sitting inside an aria-hidden subtree: focusable,
-             reachable by Tab, announced as nothing — a WCAG 4.1.2 failure that
-             predates this work. The DIAGRAM stays hidden (a screen reader
-             announcing an 8-stage loop is noise); the CONTROLS that operate it
-             are exposed, and the figcaption is now the figure's accessible
-             name, so the prose carrying the argument is what actually lands. -->
+        
         <figure class="rig" id="rig" data-stage="idle" aria-labelledby="rig-cap">
 
           <div class="rig-fig" aria-hidden="true">
 
-            <!-- The wire. The job arrives from outside the host — it is not
-               already there, which is the whole point of the sequence. -->
+            
             <div class="wire">
               <span class="wire-lbl">task:run</span>
               <span class="wire-pkt"></span>
@@ -104,17 +49,10 @@
             <div class="lay lay-host">
               <span class="lay-tab">Host machine <em class="lay-st"></em></span>
 
-              <!-- The teardown statement, centred on the host. It occupies the
-                 space the machine vacated, which is the argument: the walls
-                 were here, they are gone, and nothing of the run remains.
-                 Sourced from proof.yaml → callback_isolation — after teardown
-                 the routes unpublished and a callback returned 404 with no host
-                 code run and no VM revived, captured 2026-08-05. -->
+              
               <span class="rig-retained">0 retained · routes unpublished</span>
 
-              <!-- data-built is the ghost/built switch. These two layers are the
-                 ones the product actually MANUFACTURES per job; the host is
-                 not ours and the payload is not a wall, so neither takes it. -->
+              
               <div class="lay lay-jail" data-built="0">
                 <span class="lay-tab">Jailed hypervisor <em>uid per VM · chroot · firecracker</em></span>
 
@@ -124,8 +62,7 @@
                   <div class="job">
                     <span class="job-run">run()</span>
                     <span class="job-uid">uid 10001 · --no-new-privs</span>
-                    <!-- The execution bar: real progress, not a spinner. It only
-                       moves during `run`, so it reads as work being done. -->
+                    
                     <span class="job-bar" aria-hidden="true"><i></i></span>
                   </div>
 
@@ -133,31 +70,11 @@
               </div>
             </div>
 
-          </div><!-- /.rig-fig -->
+          </div>
 
-          <!-- The stage readout. This is what makes the motion legible: without
-               a name, a moving diagram is just movement. Each line is a real
-               step and lights only while that step is current.
-
-               The steps double as the transport: clicking one jumps to that
-               stage and pauses there, so the diagram can be READ rather than
-               only watched. That is why they are <button>s — they are genuinely
-               interactive, and a div with a click handler would not be
-               reachable by keyboard. -->
-          <!-- THE SEQUENCE RAIL. Five numbered nodes on a track that FILLS as
-               the lifecycle advances. The numerals are not decoration: they
-               make "five steps" countable at a glance and they are what keeps
-               the order readable below 560px, where the row scrolls and
-               position alone stops encoding sequence.
-               Arrows between the labels were considered and rejected — four
-               chevrons are four pieces of chrome that each say nothing alone,
-               and they break at exactly the width where direction matters most.
-               One filling track says it once, and carries progress as well as
-               direction. -->
-          <!-- THE RAIL ROW. The step rail and the transport drive the same
-               state, so they sit on one line rather than as two stacked blocks.
-               DOM order is rail-then-transport, so keyboard focus still reaches
-               Pause immediately after the five steps it controls. -->
+          
+          
+          
           <div class="rig-rail">
             <ol class="rig-steps">
               <li><button type="button" data-for="land"><i>1</i><b>bind</b></button></li>
@@ -167,39 +84,18 @@
               <li><button type="button" data-for="reclaim"><i>5</i><b>destroy</b></button></li>
             </ol>
 
-            <!-- Transport. The animation loops, and a loop the reader cannot stop
-                 is a nuisance on a page they came to read — so pause is a real
-                 control, not a concession. It is a button (not a checkbox) with
-                 aria-pressed, and the label text changes with the state so it is
-                 not colour-only. -->
+            
             <div class="rig-ctl">
               <button type="button" class="rig-play" id="rigplay" aria-pressed="false" aria-controls="rig">
                 <span class="rig-ico" aria-hidden="true"></span>
                 <span class="rig-play-t">Pause</span>
               </button>
-              <!-- The stage name is no longer PRINTED beside the transport: the
-                   numbered rail already names the current step, and a second
-                   readout saying the same word was redundant chrome next to the
-                   one control in the row.
-                   Its accessibility job is real and is kept — the live region
-                   announces stage changes while paused, so a screen-reader user
-                   scrubbing the sequence hears where they landed. It is now
-                   visually hidden rather than deleted; removing it would have
-                   silently taken that away. -->
+              
               <span class="rig-now vh" id="rignow" aria-live="polite"></span>
             </div>
           </div>
 
-          <!-- THE CAPTION IS NOW INSIDE ITS FIGURE, and that is a correctness
-               fix as much as a compositional one. It previously sat as a sibling
-               of <figure> inside .fold-ev — a <figcaption> outside a <figure>,
-               which is invalid HTML, carries no association to the figure for
-               assistive technology, and left the figure with NO accessible name
-               at all despite a comment here claiming it was the figure's name.
-               aria-labelledby now makes that claim true.
-               Compositionally: the transport used to sit BETWEEN the figure and
-               its caption, splitting them, so the evidence column read as three
-               loose blocks. It is one object now. -->
+          
           <figcaption class="cap" id="rig-cap">
           </figcaption>
         </figure>
@@ -213,24 +109,12 @@
       <h2 class="sh">You don’t configure a runtime. You describe a workload.</h2>
     </div>
 
-    <!-- Was one paragraph carrying three unrelated instructions. They are three
-         steps, not three clauses, so they are numbered: the reader declares,
-         the platform derives, and the platform reclaims. That is the real
-         lifecycle order, which is why the numbering is allowed to exist here
-         at all.
-         ⌛ Step 3 was "Two combinations are refused — try to find them", a
-         literal count of the console's two data-reject options and its call to
-         action. The REFUSAL IS STILL SHOWN — both options are marked in the
-         console below and produce the resolver's real message (home.js) — but
-         it is no longer what this step points at. If the steps ever lose that,
-         re-read DESIGN-NOTES §3: showing what is rejected is the trust signal,
-         not an aside. -->
+    
     <ol class="steps stagger">
       <li class="step">
         <span class="step-i" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-            <!-- Three rails with handles at different stops: the axes are
-                 things you SET, which four plain rules did not say. -->
+            
             <path d="M3 5h14M3 10h14M3 15h14" />
             <path d="M7 3v4M13 8v4M6 13v4" />
           </svg>
@@ -241,8 +125,7 @@
       <li class="step">
         <span class="step-i" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-            <!-- One line in, three out. "Derives the rest" is a fan-out;
-                 the old cross-and-chevron read as neither. -->
+            
             <path d="M3 10h5" />
             <path d="M8 4v12" />
             <path d="M8 4h6M8 10h6M8 16h6" />
@@ -254,9 +137,7 @@
       <li class="step">
         <span class="step-i" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-            <!-- A unit going back into the pool. Deliberately NOT a
-                 prohibition sign (the old circle-and-slash) — that said
-                 "refused", and this step no longer does. -->
+            
             <path d="M4 9h12" />
             <path d="M6 9v8h8V9" />
             <path d="M10 2v5M7.5 4.5L10 7l2.5-2.5" />
@@ -312,7 +193,7 @@
                 <button class="opt" type="button" data-v="bidirectional">bidirectional</button>
               </div>
 
-              <!-- network is an OBJECT, not a scalar. Nine sub-keys, gated by type. -->
+              
               <div class="sub" id="sub-egress" hidden>
                 <div class="subrow">
                   <label for="eallow"><code>egress_allow</code> <em>omitted = allow-all · [] = deny-all</em></label>
@@ -452,16 +333,14 @@
 <span class="pr">$</span> ignitify task:run STREAMING-JOB
 <span class="ok">✓ Run Submitted</span>
 <span class="dim">run_id</span>       019fdebb-1ce5-7048-bc36-ce8821f02c08
-<span class="dim">status</span>       PENDING</pre></div><div class="grid g3 stack-5 stagger"><div class="card up"><h3>Content-addressed</h3><p class="def">Deployments are immutable and hashed. Redeploying an unchanged bundle reuses the existing image.</p></div><div class="card up"><h3>Image integrity</h3><p class="def">The code image is read-only inside the guest. It is verified before boot, not trusted after it.</p></div><div class="card up"><h3>Secrets</h3><p class="def">Only secret <em>names</em> enter the bundle. Values are injected at run time and never stored with your code.</p></div></div></section><section id="home-toolkit" class="band band-well reveal"><div class="mid"><span class="eyebrow">04 — Your toolkit</span><h2>Start with nothing installed.</h2><p class="def">What you get today, and what is honestly still ahead.</p></div><div class="grid g3 stack-5 stagger"><div class="card up"><h3>Easy to start</h3><p class="def">Export <span class="mono">run()</span> — that is the contract. No package, no client, no framework.</p><span class="tag soon">An SDK for logs, metrics and more — soon</span></div><div class="card up"><h3>TypeScript &amp; JavaScript</h3><p class="def">The runtime is Node 22. Your task is plain TS or JS.</p><span class="tag soon">Python — on the roadmap</span></div><div class="card up"><h3>One CLI</h3><p class="def"><span class="mono">ignitify</span> — 24 commands covering tasks, deployments, runs and inspection.</p></div><div class="card up"><h3>Telemetry that leaves the box</h3><p class="def">Runs emit structured events to pluggable sinks.</p><span class="tag soon">Custom Observability — coming soon</span></div><div class="card up"><h3>Per-run timelines</h3><p class="def">Every run leaves a per-tenant, append-only timeline of what happened and when.</p><span class="tag soon">Visualizer — coming soon</span></div></div></section><section id="home-platform" class="reveal"><div class="mid"><span class="eyebrow">05 — Many tenants, one host</span><h2>One noisy tenant can’t take the host down with it.</h2><p class="def">Running this for other people is a different job from running it for yourself. The controls for that are first-class, not bolted on.</p></div><div class="grid g3 stack-5 stagger"><div class="card up"><h3>Tiers, not overrides</h3><p class="def">Every limit a tenant has comes from a tier they are granted. A one-off deal is a new tier, never an edited row.</p></div><div class="card up"><h3>Fair queueing</h3><p class="def">One tenant’s deploy storm cannot starve another’s build. The work queue claims fairly across tenants.</p></div><div class="card up"><h3>Honest capacity</h3><p class="def">Entitlement and room are separate ledgers, so “allowed” and “available” are never conflated.</p></div></div></section><!-- ════ 06 FLOW ════ -->
+<span class="dim">status</span>       PENDING</pre></div><div class="grid g3 stack-5 stagger"><div class="card up"><h3>Content-addressed</h3><p class="def">Deployments are immutable and hashed. Redeploying an unchanged bundle reuses the existing image.</p></div><div class="card up"><h3>Image integrity</h3><p class="def">The code image is read-only inside the guest. It is verified before boot, not trusted after it.</p></div><div class="card up"><h3>Secrets</h3><p class="def">Only secret <em>names</em> enter the bundle. Values are injected at run time and never stored with your code.</p></div></div></section><section id="home-toolkit" class="band band-well reveal"><div class="mid"><span class="eyebrow">04 — Your toolkit</span><h2>Start with nothing installed.</h2><p class="def">What you get today, and what is honestly still ahead.</p></div><div class="grid g3 stack-5 stagger"><div class="card up"><h3>Easy to start</h3><p class="def">Export <span class="mono">run()</span> — that is the contract. No package, no client, no framework.</p><span class="tag soon">An SDK for logs, metrics and more — soon</span></div><div class="card up"><h3>TypeScript &amp; JavaScript</h3><p class="def">The runtime is Node 22. Your task is plain TS or JS.</p><span class="tag soon">Python — on the roadmap</span></div><div class="card up"><h3>One CLI</h3><p class="def"><span class="mono">ignitify</span> — 24 commands covering tasks, deployments, runs and inspection.</p></div><div class="card up"><h3>Telemetry that leaves the box</h3><p class="def">Runs emit structured events to pluggable sinks.</p><span class="tag soon">Custom Observability — coming soon</span></div><div class="card up"><h3>Per-run timelines</h3><p class="def">Every run leaves a per-tenant, append-only timeline of what happened and when.</p><span class="tag soon">Visualizer — coming soon</span></div></div></section><section id="home-platform" class="reveal"><div class="mid"><span class="eyebrow">05 — Many tenants, one host</span><h2>One noisy tenant can’t take the host down with it.</h2><p class="def">Running this for other people is a different job from running it for yourself. The controls for that are first-class, not bolted on.</p></div><div class="grid g3 stack-5 stagger"><div class="card up"><h3>Tiers, not overrides</h3><p class="def">Every limit a tenant has comes from a tier they are granted. A one-off deal is a new tier, never an edited row.</p></div><div class="card up"><h3>Fair queueing</h3><p class="def">One tenant’s deploy storm cannot starve another’s build. The work queue claims fairly across tenants.</p></div><div class="card up"><h3>Honest capacity</h3><p class="def">Entitlement and room are separate ledgers, so “allowed” and “available” are never conflated.</p></div></div></section>
 
 <section id="home-flow" class="reveal">
   <div class="mid"><span class="eyebrow">06 — Deploy and scale</span>
     <h2>Three steps on your machine. <br> Then one crossing.</h2>
   </div>
 
-  <!-- One rail, one seam. The crossing is the widest mark in the picture because it
-         is the section's headline; everything else is a tick on a single continuous
-         line. No frames, no fills, no radii — see FLOW-SPEC.md §3-§4. -->
+  
   <div class="flow" id="flow">
 
     <div class="fzone" aria-hidden="true">
@@ -518,8 +397,7 @@
       </li>
     </ol>
 
-    <!-- The return path. Dashed because it is not a step, and aria-hidden because
-           step 06 already says it in prose. -->
+    
     <div class="fl-return" aria-hidden="true">
       <span class="fz-rule"></span>
       <span class="tiny">deploy once · run many</span>

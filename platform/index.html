@@ -23,19 +23,13 @@
         <span class="lbl">jailed hypervisor · separate kernel · de-privileged child</span>
       </div>
     </div>
-  </section><section id="platform-isolation" class="reveal"><div class="mid"><h2>Three boundaries, each verified separately.</h2><p class="def">Tenants don’t share a kernel, a uid, or a network path. Each boundary was tested on its own, because a boundary you haven’t tested is a boundary you’re assuming.</p></div><div class="nest stack-5 stagger"><div class="nest-l"><div class="nest-b"><h3>The jailed hypervisor</h3><p class="tiny role">bounds what a hypervisor escape reaches</p><p class="def">A per-VM uid, never shared between two live VMs, chrooted to that VM’s files only. Enabled by default in every environment — the production launch path is the only launch path.</p></div></div><div class="nest-l"><div class="nest-b"><h3>The MicroVM</h3><p class="tiny role">bounds the guest’s reachable network</p><p class="def">Separate kernel, three drives, no shared filesystem. Cross-tenant and guest→host traffic are both dropped on two independent paths.</p></div></div><div class="nest-l"><div class="nest-b"><h3>The de-privileged child</h3><p class="tiny role">bounds what the guest can do</p><p class="def">Your code runs as uid 10001 with <span class="mono">--no-new-privs</span>. Unconditional — there is no configuration that turns it off.</p></div></div></div></section><!-- This was the one section that broke the page's header pattern: a bare
-       .eyebrow over a left-aligned .measure wrapping an h2.sh, where the other
-       four use a centred .mid with a plain h2. .sh also resolved to a DIFFERENT
-       h2 size (35.84px against 32.77px at 1024px), so it was the odd one out in
-       alignment, structure and scale at once. -->
+  </section><section id="platform-isolation" class="reveal"><div class="mid"><h2>Three boundaries, each verified separately.</h2><p class="def">Tenants don’t share a kernel, a uid, or a network path. Each boundary was tested on its own, because a boundary you haven’t tested is a boundary you’re assuming.</p></div><div class="nest stack-5 stagger"><div class="nest-l"><div class="nest-b"><h3>The jailed hypervisor</h3><p class="tiny role">bounds what a hypervisor escape reaches</p><p class="def">A per-VM uid, never shared between two live VMs, chrooted to that VM’s files only. Enabled by default in every environment — the production launch path is the only launch path.</p></div></div><div class="nest-l"><div class="nest-b"><h3>The MicroVM</h3><p class="tiny role">bounds the guest’s reachable network</p><p class="def">Separate kernel, three drives, no shared filesystem. Cross-tenant and guest→host traffic are both dropped on two independent paths.</p></div></div><div class="nest-l"><div class="nest-b"><h3>The de-privileged child</h3><p class="tiny role">bounds what the guest can do</p><p class="def">Your code runs as uid 10001 with <span class="mono">--no-new-privs</span>. Unconditional — there is no configuration that turns it off.</p></div></div></div></section>
 <section id="platform-hierarchy" class="reveal">
   <div class="mid">
     <span class="eyebrow">Concepts</span>
     <h2>Four levels, each owning exactly one thing.</h2>
   </div>
-  <!-- Table and caption share one measured column. The caption belongs to the
-         table, so it has to start where the table starts; centring .hier on its
-         own left the caption hanging 74px outside it. -->
+  
   <div class="hier-block stack-5">
     <div class="hier">
       <div class="hrow">
@@ -59,7 +53,7 @@
   </div>
 </section>
 
-<!-- ════ 07 PLATFORM ════ -->
+
 
 <section id="platform-sequence" class="reveal">
   <div class="mid">
