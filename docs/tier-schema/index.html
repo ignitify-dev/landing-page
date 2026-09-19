@@ -13,7 +13,7 @@
     })();
   </script><link rel="stylesheet" href="/_astro/Footer.DQlbbKkg.css"></head><body><a class="skip" href="#main">Skip to content</a><header class="hdr" id="hdr" data-scrolled="false"><div class="hdr-in"><a class="mark" href="/"><span class="spark" aria-hidden="true"></span><span class="wordmark">Ignitify<span>.dev</span></span></a><nav class="nav" id="sitenav" data-open="false"><a href="/docs" aria-current="page">Docs</a><a href="/platform">Platform</a><a href="/pricing">Pricing</a><a href="/blog">Blog</a></nav><span class="sp"></span><div class="hdr-cta"><button class="themetog" type="button" id="bt" aria-label="Switch between light and dark theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="3.4"></circle><path d="M8 .8v2M8 13.2v2M.8 8h2M13.2 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M13.1 2.9l-1.4 1.4M4.3 11.7l-1.4 1.4"></path></svg></button><a class="btn solid live" href="/signin">Start free</a><button class="burger" type="button" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="sitenav"><span></span><span></span><span></span></button></div></div></header><div id="main" tabindex="-1"><main><div class="docs"><aside class="docnav"><div class="search" aria-hidden="true">Search docs…</div><div class="docgrp"><h4>Start</h4><a href="/docs/quickstart">Quickstart</a><span class="doc-soon" aria-disabled="true">Your first task<span class="ft-soon"> soon</span></span><span class="doc-soon" aria-disabled="true">Concepts<span class="ft-soon"> soon</span></span></div><div class="docgrp"><h4>Task nature</h4><span class="doc-soon" aria-disabled="true">The seven axes<span class="ft-soon"> soon</span></span><span class="doc-soon" aria-disabled="true">Network<span class="ft-soon"> soon</span></span><span class="doc-soon" aria-disabled="true">Storage &amp; residency<span class="ft-soon"> soon</span></span><span class="doc-soon" aria-disabled="true">Refused values<span class="ft-soon"> soon</span></span></div><div class="docgrp"><h4>Reference</h4><span class="doc-soon" aria-disabled="true">config.ts<span class="ft-soon"> soon</span></span><a href="/docs/task-context">The task context</a><a href="/docs/errors">Errors</a><span class="doc-soon" aria-disabled="true">Concepts &amp; hierarchy<span class="ft-soon"> soon</span></span><span class="doc-soon" aria-disabled="true">Presets &amp; limits<span class="ft-soon"> soon</span></span><a href="/docs/tier-schema" class="on" aria-current="page">Tier schema</a></div><div class="docgrp"><h4>Operations</h4><span class="doc-soon" aria-disabled="true">Reliability<span class="ft-soon"> soon</span></span></div><div class="docgrp"><h4>API</h4><a href="/docs/http-endpoints">HTTP endpoints</a><span class="doc-soon" aria-disabled="true">CLI<span class="ft-soon"> soon</span></span></div></aside><article><span class="eyebrow">Reference</span>      <h1 style="font-size:clamp(26px,3.4vw,38px)">Tier schema</h1>
       <p class="def" style="max-width:66ch;margin-top:14px;font-size:15px">
-        A tier is <strong>43 entitlement columns</strong>, plus 5 identity columns and 4 derived ones.
+        A tier is <strong>44 entitlement columns</strong>, plus 5 identity columns and 7 derived ones.
         Every column has a live gate — a column with no enforcement is a build failure, not a TODO.
       </p>
 
@@ -68,9 +68,15 @@
           <div class="td"><span class="n">all presets</span></div>
           <div class="td"><span class="v">allowed_presets</span></div>
         </div>
+        <div class="tr c4">
+          <div class="td"><strong>Monthly allowance</strong></div>
+          <div class="td"><span class="v">1</span></div>
+          <div class="td"><span class="n">unlimited</span></div>
+          <div class="td"><span class="v">max_compute_seconds_month</span></div>
+        </div>
         <div class="tr c4" style="background:var(--sunk)">
           <div class="td"><strong>Total</strong></div>
-          <div class="td"><span class="v"><strong>43</strong></span></div>
+          <div class="td"><span class="v"><strong>44</strong></span></div>
           <div class="td"></div>
           <div class="td"></div>
         </div>
