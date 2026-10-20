@@ -13,6 +13,7 @@
   <url><loc>https://ignitify.dev/docs/cli/tasks</loc></url>
   <url><loc>https://ignitify.dev/docs/cli/vms</loc></url>
   <url><loc>https://ignitify.dev/docs/cli/webhooks</loc></url>
+  <url><loc>https://ignitify.dev/docs/concepts/how-capacity-works</loc></url>
   <url><loc>https://ignitify.dev/docs/concepts/lifecycle-and-statuses</loc></url>
   <url><loc>https://ignitify.dev/docs/concepts/network</loc></url>
   <url><loc>https://ignitify.dev/docs/concepts/presets-and-limits</loc></url>
@@ -43,6 +44,8 @@
   <url><loc>https://ignitify.dev/privacy</loc></url>
   <url><loc>https://ignitify.dev/terms</loc></url>
   <url><loc>https://ignitify.dev/tutorials</loc></url>
+  <url><loc>https://ignitify.dev/tutorials/code-sandbox</loc></url>
   <url><loc>https://ignitify.dev/tutorials/nightly-report</loc></url>
+  <url><loc>https://ignitify.dev/tutorials/pr-reviewer</loc></url>
   <url><loc>https://ignitify.dev/tutorials/streaming-job</loc></url>
 </urlset>
