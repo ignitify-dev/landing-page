@@ -7,6 +7,7 @@
   <url><loc>https://ignitify.dev/docs/cli/account-and-usage</loc></url>
   <url><loc>https://ignitify.dev/docs/cli/all</loc></url>
   <url><loc>https://ignitify.dev/docs/cli/deployments</loc></url>
+  <url><loc>https://ignitify.dev/docs/cli/integrations</loc></url>
   <url><loc>https://ignitify.dev/docs/cli/runs</loc></url>
   <url><loc>https://ignitify.dev/docs/cli/schedules</loc></url>
   <url><loc>https://ignitify.dev/docs/cli/secrets</loc></url>
@@ -21,6 +22,7 @@
   <url><loc>https://ignitify.dev/docs/concepts/storage-and-residency</loc></url>
   <url><loc>https://ignitify.dev/docs/concepts/tasks-deployments-runs-vms</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/choose-a-vm-size-and-disk</loc></url>
+  <url><loc>https://ignitify.dev/docs/guides/integrations</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/keep-a-vm-warm-or-pinned</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/network-access</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/pass-input-and-read-results</loc></url>
@@ -46,6 +48,7 @@
   <url><loc>https://ignitify.dev/terms</loc></url>
   <url><loc>https://ignitify.dev/tutorials</loc></url>
   <url><loc>https://ignitify.dev/tutorials/code-sandbox</loc></url>
+  <url><loc>https://ignitify.dev/tutorials/launch-event</loc></url>
   <url><loc>https://ignitify.dev/tutorials/nightly-report</loc></url>
   <url><loc>https://ignitify.dev/tutorials/pr-reviewer</loc></url>
   <url><loc>https://ignitify.dev/tutorials/streaming-job</loc></url>
