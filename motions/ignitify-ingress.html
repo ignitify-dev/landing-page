@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="facts" content="cli.public-hostname cli.task-yaml-network ingress.callback-url ingress.central-to-host ingress.concurrency-limit ingress.declared-paths-only
+  ingress.host-header-to-guest ingress.one-wildcard-cert ingress.paths-close-at-run-end ingress.paths-open-on-ready ingress.rate-limit ingress.ready-signal
+  ingress.ready-timeout ingress.reload-no-restart ingress.route-files ingress.route-gone-at-teardown ingress.route-id ingress.route-needs-port
+  ingress.tenant-label ingress.unknown-host-404 ingress.watch-from-callback network.host-ingress-mtls network.inbound-only-from-ingress network.inbound-port
+  network.public-tls-ends-central">
+<title>Ignitify: live ingress in brief</title>
+<style>
+  :root {
+    --bg: #0a0c11; --panel: #12161f; --line: #2a3142;
+    --text: #eef1f7; --muted: #8d97ad; --dim: #5d667a;
+    --ember: #ff6b2c; --ember-soft: #ffb089; --safe: #3fd6b8; --warn: #f2c04e; --threat: #ff4d5e;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #05060a; overflow: hidden; }
+  body { font-family: var(--sans); color: var(--text); }
+
+  #stage {
+    position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; overflow: hidden;
+    background:
+      radial-gradient(900px 500px at 88% -10%, rgba(255, 107, 44, .12), transparent 60%),
+      radial-gradient(700px 500px at 0% 110%, rgba(63, 214, 184, .07), transparent 60%),
+      var(--bg);
+  }
+  #stage.still * { transition: none !important; }
+  #stage.paused * { animation-play-state: paused !important; }
+
+  /* Timed elements: the script adds .on (visible) and .lit (active) from data-on / data-lit */
+  [data-on] { opacity: 0; transform: translateY(10px) scale(.98); transition: opacity .6s ease, transform .6s var(--ease), border-color .4s ease, box-shadow .4s ease; }
+  [data-on].on { opacity: 1; transform: none; }
+
+  .full { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .full.show { display: flex; }
+  .logo { width: 80px; height: 80px; filter: drop-shadow(0 0 28px rgba(255, 107, 44, .55)); }
+  .word { margin-top: 20px; font-size: 68px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
+  .word b { color: var(--ember); font-weight: inherit; }
+  .tagline { margin-top: 20px; font-size: 30px; font-weight: 500; line-height: 1.35; }
+  .tagline b { color: var(--ember); font-weight: 600; }
+  .sub { margin-top: 22px; font: 500 15px/1.5 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+  #frame { position: absolute; inset: 0; display: none; }
+  #frame.show { display: block; }
+  #kicker { position: absolute; left: 40px; top: 30px; font: 600 13px/1 var(--mono); letter-spacing: .18em; color: var(--ember); text-transform: uppercase; }
+  #title { position: absolute; left: 40px; top: 52px; font-size: 36px; font-weight: 700; letter-spacing: -.02em; }
+  .state { position: absolute; right: 40px; top: 46px; height: 40px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); display: flex; align-items: center; gap: 10px; font: 700 13px/1 var(--mono); letter-spacing: .1em; }
+  .state::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+  .state.amber { color: var(--warn); } .state.green { color: var(--safe); } .state.grey { color: var(--muted); }
+
+  .cap { position: absolute; left: 40px; right: 40px; top: 628px; font-size: 21px; color: var(--ember-soft); }
+  .cap b { color: var(--text); font-weight: 600; }
+
+  .tag { position: absolute; left: 18px; top: 14px; font: 600 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .n { position: absolute; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; }
+  .n b { font-size: 19px; }
+  .n span { font-size: 14px; color: var(--muted); }
+  .n.lit { border-color: var(--ember); box-shadow: 0 0 34px rgba(255, 107, 44, .32); }
+  .n.ok { border-color: rgba(63, 214, 184, .6); }
+  .n.ok b { color: var(--safe); font-size: 16px; }
+  .n.bad { border-color: rgba(255, 77, 94, .55); }
+  .n.bad b { color: var(--threat); font-size: 16px; }
+  .n.lim { border-color: rgba(242, 192, 78, .55); }
+  .n.lim b { color: var(--warn); font-size: 16px; }
+  .n.chip { border-radius: 999px; border-color: rgba(63, 214, 184, .6); }
+  .n.chip b { font: 600 15px/1 var(--mono); color: var(--safe); }
+
+  /* A machine: a dashed region that holds the boxes that run on it */
+  .zone { position: absolute; border: 1.5px dashed var(--line); border-radius: 18px; }
+  .zone > .tag { left: 18px; top: -7px; background: var(--bg); padding: 0 8px; color: var(--muted); }
+  .box { position: absolute; border: 2px solid var(--line); border-radius: 18px; background: rgba(18, 22, 31, .7); }
+  .box.guest { border-color: var(--safe); background: rgba(10, 12, 17, .8); } .box.guest > .tag { color: var(--safe); }
+
+  /* The address of the task, as a browser shows it */
+  .addr { position: absolute; left: 40px; top: 112px; width: 1200px; height: 40px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); display: flex; align-items: center; gap: 12px; font: 500 15px/1 var(--mono); color: var(--muted); white-space: nowrap; }
+  .addr em { font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; font-style: normal; color: var(--dim); }
+  .rid { color: var(--ember); } .tid { color: var(--safe); } .dom { color: var(--warn); }
+
+  .card { position: absolute; border: 1.5px solid var(--line); border-radius: 16px; background: var(--panel); padding: 44px 26px 20px; }
+  .card.lit { border-color: var(--ember); box-shadow: 0 0 34px rgba(255, 107, 44, .32); }
+  .card > .tag { color: var(--muted); }
+  .card pre { font: 500 19px/1.6 var(--mono); color: var(--muted); }
+  .card pre b { color: var(--text); font-weight: 600; }
+  .name { font: 600 23px/1 var(--mono); text-align: center; margin-top: 22px; white-space: nowrap; }
+  .legend { display: flex; justify-content: center; gap: 44px; margin-top: 34px; font-size: 17px; color: var(--muted); }
+  .legend b { font-weight: 600; }
+  .big { font: 700 34px/1 var(--mono); color: var(--warn); text-align: center; margin-top: 44px; }
+  .note { font-size: 17px; color: var(--muted); text-align: center; margin-top: 22px; }
+
+  .wire { position: absolute; height: 2px; background: var(--line); }
+  .wire i { position: absolute; left: -6px; top: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 16px var(--ember); opacity: 0; }
+  .wire.teal i { background: var(--safe); box-shadow: 0 0 16px var(--safe); }
+  .wire.lit i { animation: go var(--t, .9s) linear infinite; }
+  .wire.up { width: 2px; }
+  .wire.up i { top: auto; bottom: -6px; }
+  .wire.up.lit i { animation-name: rise; }
+  .wire > span { position: absolute; left: 0; right: 0; top: -24px; text-align: center; font: 600 11px/1 var(--mono); letter-spacing: .06em; color: var(--muted); white-space: nowrap; }
+  @keyframes go { 0% { opacity: 0; transform: translateX(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(var(--len)); } }
+  @keyframes rise { 0% { opacity: 0; transform: translateY(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(calc(-1 * var(--len))); } }
+
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 50px; display: flex; align-items: center; gap: 14px; padding: 0 22px 0 30px; z-index: 10; }
+  #bar button { all: unset; cursor: pointer; }
+  #play { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: var(--text); }
+  #play:hover { background: rgba(255, 255, 255, .08); }
+  #bar button:focus-visible { outline: 2px solid var(--ember); border-radius: 6px; }
+  #play svg { width: 16px; height: 16px; fill: currentColor; }
+  #dots { display: flex; gap: 8px; flex: 1; }
+  #dots button { flex: var(--w, 1); padding-top: 6px; }
+  #dots span { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+  #dots span i { display: block; height: 100%; width: 0; background: var(--ember); }
+  #dots em { display: block; margin-top: 6px; font: 600 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; font-style: normal; color: var(--dim); }
+  #dots button.cur em { color: var(--text); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <section class="full" data-ch="0">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g)"/>
+    </svg>
+    <div class="word" data-on="0,.4">Live <b>ingress</b></div>
+    <div class="sub" data-on="0,1.4">Ignitify · how a viewer reaches a running VM</div>
+  </section>
+
+  <div id="frame">
+    <div id="kicker"></div>
+    <div id="title"></div>
+
+    <div class="state amber" data-on="2,.6-2,11">paths closed · 404</div>
+    <div class="state green" data-on="2,11-5,2.5">paths open</div>
+    <div class="state amber" data-on="5,2.5-5,8">paths closed · 404</div>
+    <div class="state grey" data-on="5,8">no route · 404</div>
+
+    
+    <div class="card" style="left:40px; top:112px; width:560px; height:262px" data-on="1,.4-2,0" data-lit="1,.4-1,4.5">
+      <div class="tag">task.yaml</div>
+<pre>execution:
+  network:
+    <b>type: bidirectional</b>
+    <b>inbound_port: 8080</b>
+    inbound_routes:
+      - prefix: /live/</pre>
+    </div>
+    <div class="card" style="left:640px; top:112px; width:600px; height:262px" data-on="1,8.5-2,0" data-lit="1,8.5-1,12">
+      <div class="tag">one wildcard certificate</div>
+      <div class="big">*.ignitify.app</div>
+      <div class="note">It covers the public names of all tasks.</div>
+    </div>
+    <div class="card" style="left:40px; top:398px; width:1200px; height:206px" data-on="1,4.5-2,0" data-lit="1,4.5-1,8.5">
+      <div class="tag">the public name of the task</div>
+      <div class="name"><span class="rid">3fa9c1d07e</span>--<span class="tid">0198c2f4-7b1e-7c3a-9d42-5e6f7a8b9c0d</span><span class="dom">.ignitify.app</span></div>
+      <div class="legend">
+        <div><b class="rid">route id</b> · 10 hex characters, made from the deployment id</div>
+        <div><b class="tid">tenant id</b> · a UUID</div>
+        <div><b class="dom">base domain</b></div>
+      </div>
+    </div>
+
+    
+    <div class="addr" data-on="2,.2"><em>address</em><span>https://<span class="rid">3fa9c1d07e</span>--<span class="tid">0198c2f4-7b1e-7c3a-9d42-5e6f7a8b9c0d</span><span class="dom">.ignitify.app</span>/live/</span></div>
+
+    <div class="n" style="left:40px; top:232px; width:180px; height:100px" data-on="3,2.5" data-lit="3,2.5-3,5"><b>Viewer</b><span>a browser</span></div>
+
+    <div class="zone" style="left:262px; top:176px; width:276px; height:436px" data-on="2,.2">
+      <div class="tag">control machine</div>
+      <div class="n" style="left:18px; top:56px; width:240px; height:100px" data-on="2,.4" data-lit="2,8-2,11;3,5-3,9"><b>Public ingress</b><span>public TLS ends here</span></div>
+      <div class="n" style="left:18px; top:296px; width:240px; height:100px" data-on="2,.4-3,0;5,4.5" data-lit="2,6-2,11;5,8-5,12"><b>Brain</b><span>makes the routes</span></div>
+      <div class="n bad" style="left:18px; top:284px; width:240px; height:48px" data-on="4,.6-5,0"><b>✕ name with no route · 404</b></div>
+      <div class="n bad" style="left:18px; top:346px; width:240px; height:48px" data-on="4,2.4-5,0"><b>✕ path not declared · 404</b></div>
+    </div>
+
+    <div class="zone" style="left:580px; top:176px; width:660px; height:436px" data-on="2,.2">
+      <div class="tag">fleet host</div>
+      <div class="n" style="left:22px; top:56px; width:220px; height:100px" data-on="2,.4" data-lit="2,8-2,11;3,9-3,13;4,10-4,14"><b>Host ingress</b><span>Host header → guest</span></div>
+      <div class="n" style="left:22px; top:296px; width:220px; height:100px" data-on="2,.4-3,0;5,4.5" data-lit="2,8-2,11;5,8-5,12"><b>Host daemon</b><span>writes the route files</span></div>
+      <div class="n lim" style="left:22px; top:284px; width:220px; height:48px" data-on="4,5-5,0"><b>100 requests / s · then 429</b></div>
+      <div class="n lim" style="left:22px; top:346px; width:220px; height:48px" data-on="4,7-5,0"><b>64 in flight for each vCPU</b></div>
+
+      <div class="box guest" style="left:310px; top:20px; width:328px; height:230px" data-on="2,.4-5,8">
+        <div class="tag">Guest VM</div>
+        <div class="n" style="left:24px; top:36px; width:280px; height:100px" data-on="2,.4" data-lit="2,4-2,8;3,13-3,18"><b>Task server</b><span>listens on port 8080</span></div>
+        <div class="n chip" style="left:24px; top:158px; width:280px; height:44px" data-on="2,5-3,0"><b>ctx.ready()</b></div>
+        <div class="n chip" style="left:24px; top:158px; width:280px; height:44px" data-on="3,.4-4,0"><b>ctx.callback.url</b></div>
+      </div>
+      <div class="n bad" style="left:310px; top:284px; width:328px; height:48px" data-on="4,10-5,0"><b>✕ other sources · dropped</b></div>
+      <div class="n ok" style="left:310px; top:346px; width:328px; height:48px" data-on="4,10-5,0"><b>✓ the host ingress</b></div>
+    </div>
+
+    
+    <div class="wire" style="left:220px; top:281px; width:60px; --len:60px" data-on="3,2.5" data-lit="3,5-4,0"><i></i><span>HTTPS</span></div>
+    <div class="wire" style="left:520px; top:281px; width:82px; --len:82px" data-on="3,2.5" data-lit="3,9-4,0"><i></i><span>mutual TLS</span></div>
+    <div class="wire teal" style="left:822px; top:281px; width:92px; --len:92px" data-on="3,2.5-5,8" data-lit="3,13-4,0"><i></i><span style="right:24px">port 8080</span></div>
+
+    
+    <div class="wire up" style="left:399px; top:332px; height:140px; --len:140px" data-on="2,6-3,0;5,8" data-lit="2,8-2,11;5,8-5,12"><i></i></div>
+    <div class="wire" style="left:520px; top:521px; width:82px; --len:82px" data-on="2,6-3,0;5,8" data-lit="2,6-2,11;5,8-5,12"><i></i><span>routes</span></div>
+    <div class="wire up" style="left:711px; top:332px; height:140px; --len:140px" data-on="2,8-3,0;5,8" data-lit="2,8-2,11;5,8-5,12"><i></i></div>
+
+    
+    <div class="cap" data-on="1,.5-1,4.5">A task asks for inbound traffic in task.yaml. A route needs the type <b>bidirectional</b> and an <b>inbound_port</b>.</div>
+    <div class="cap" data-on="1,4.5-1,8.5"><b>The platform makes the public name</b> from the deployment id and the tenant id.</div>
+    <div class="cap" data-on="1,8.5-2,0"><b>One wildcard certificate</b> covers the names of all tasks.</div>
+
+    <div class="cap" data-on="2,.5-2,4">The run starts on a new VM. <b>Its paths are closed.</b> A request to the name gets 404.</div>
+    <div class="cap" data-on="2,4-2,6">The task starts its server, then calls <b>ctx.ready()</b>.</div>
+    <div class="cap" data-on="2,6-2,11"><b>The brain makes the routes.</b> On the host, the daemon writes them. Each proxy loads them with no restart.</div>
+    <div class="cap" data-on="2,11-3,0">Now the paths are open. With no ready signal in 30 seconds, the run fails.</div>
+
+    <div class="cap" data-on="3,.5-3,5">The task reads its public address from <b>ctx.callback.url</b>. The stream integration makes the viewer link from it.</div>
+    <div class="cap" data-on="3,5-3,9"><b>Hop 1.</b> HTTPS to the public ingress. Public TLS ends there. No fleet host holds the public key.</div>
+    <div class="cap" data-on="3,9-3,13"><b>Hop 2.</b> Mutual TLS to the fleet host that serves the VM. The public ingress does not dial a guest.</div>
+    <div class="cap" data-on="3,13-4,0"><b>Hop 3.</b> The host ingress finds the guest from the Host header. It sends the request to the inbound_port.</div>
+
+    <div class="cap" data-on="4,.5-4,5">A name with no route gets <b>404</b>. A path that the task did not declare gets 404 too.</div>
+    <div class="cap" data-on="4,5-4,10"><b>Each route has limits.</b> The defaults: 100 requests each second, and 64 in flight for each vCPU.</div>
+    <div class="cap" data-on="4,10-5,0">On the host, <b>only the host ingress</b> can open a connection to a guest.</div>
+
+    <div class="cap" data-on="5,.5-5,4.5">The run is over. This task does not keep its process for the next run, so <b>its paths close</b>.</div>
+    <div class="cap" data-on="5,4.5-5,8">Then the VM is torn down.</div>
+    <div class="cap" data-on="5,8"><b>The brain sends the routes again.</b> This VM is not in them. The name gets 404.</div>
+  </div>
+
+  <section class="full" data-ch="6">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g2)"/>
+    </svg>
+    <div class="tagline" style="font-size:36px" data-on="6,.4">One name. Two proxies.<br><b>Open after ready. Gone after teardown.</b></div>
+    <div class="sub" data-on="6,2">Ignitify · Firecracker MicroVMs</div>
+  </section>
+
+  <div id="bar">
+    <button id="play" aria-label="Pause"></button>
+    <div id="dots"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const CHAPTERS = [
+    { label: 'Intro', dur: 4 },
+    { label: 'Name', dur: 12.5, kicker: 'Step 1 of 5', title: 'A public name' },
+    { label: 'Open', dur: 15, kicker: 'Step 2 of 5', title: 'The route opens' },
+    { label: 'Path', dur: 18, kicker: 'Step 3 of 5', title: 'A viewer comes in' },
+    { label: 'Guards', dur: 14, kicker: 'Step 4 of 5', title: 'The guards' },
+    { label: 'End', dur: 12.5, kicker: 'Step 5 of 5', title: 'The route closes' },
+    { label: 'Close', dur: 6 },
+  ];
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const kicker = document.getElementById('kicker');
+  const title = document.getElementById('title');
+  const dots = document.getElementById('dots');
+  const playBtn = document.getElementById('play');
+  const fulls = [...stage.querySelectorAll('.full')];
+  const ICON = {
+    pause: '<svg viewBox="0 0 16 16"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>',
+    play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11a.5.5 0 0 0 .77.42l8.5-5.5a.5.5 0 0 0 0-.84l-8.5-5.5A.5.5 0 0 0 4 2.5z"/></svg>',
+    replay: '<svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 1-4.6 3H1.3A7 7 0 1 0 8 1V0L4.5 2 8 4z"/></svg>',
+  };
+
+  // A moment is "chapter,seconds". An attribute holds intervals: "2,4-5,6;6,1" (an open end = for ever).
+  const CHAPTER_SPAN = 1000;
+  const moment = s => { const [c, t] = s.split(',').map(Number); return c * CHAPTER_SPAN + t; };
+  const intervals = s => s.split(';').map(part => { const [a, b] = part.split('-'); return [moment(a), b ? moment(b) : Infinity]; });
+  const within = (list, m) => list.some(([a, b]) => m >= a && m < b);
+  const timed = [...stage.querySelectorAll('[data-on]')].map(el => ({
+    el, on: intervals(el.dataset.on), lit: el.dataset.lit ? intervals(el.dataset.lit) : null,
+  }));
+
+  const fills = CHAPTERS.map((c, n) => {
+    const b = document.createElement('button');
+    b.style.setProperty('--w', c.dur);
+    b.setAttribute('aria-label', 'Go to: ' + c.label);
+    b.innerHTML = '<span><i></i></span><em>' + c.label + '</em>';
+    b.addEventListener('click', () => { show(n); setPlaying(true); });
+    dots.appendChild(b);
+    return { b, i: b.querySelector('i') };
+  });
+
+  let index = 0, elapsed = 0, playing = true, ended = false, last = performance.now();
+
+  function render() {
+    const c = CHAPTERS[index], m = index * CHAPTER_SPAN + elapsed / 1000;
+    for (const { el, on, lit } of timed) {
+      el.classList.toggle('on', within(on, m));
+      if (lit) el.classList.toggle('lit', within(lit, m));
+    }
+    fills.forEach((f, n) => {
+      f.i.style.width = n < index ? '100%' : n > index ? '0' : Math.min(100, elapsed / (c.dur * 1000) * 100) + '%';
+      f.b.classList.toggle('cur', n === index);
+    });
+    const state = ended ? 'replay' : playing ? 'pause' : 'play';
+    if (playBtn.dataset.state !== state) {
+      playBtn.dataset.state = state;
+      playBtn.innerHTML = ICON[state];
+      playBtn.setAttribute('aria-label', state[0].toUpperCase() + state.slice(1));
+    }
+  }
+
+  function show(n, atSec = 0) {
+    index = Math.max(0, Math.min(CHAPTERS.length - 1, n));
+    const c = CHAPTERS[index];
+    elapsed = atSec * 1000; ended = false;
+    fulls.forEach(f => f.classList.toggle('show', Number(f.dataset.ch) === index));
+    frame.classList.toggle('show', Boolean(c.title));
+    if (c.title) { kicker.textContent = c.kicker; title.textContent = c.title; }
+    render();
+  }
+
+  function setPlaying(p) { playing = p; stage.classList.toggle('paused', !p); render(); }
+  function toggle() {
+    if (ended) { show(0); setPlaying(true); return; }
+    setPlaying(!playing);
+  }
+
+  function tick(now) {
+    const dt = Math.min(100, now - last); last = now;
+    if (playing && !ended) {
+      elapsed += dt;
+      if (elapsed >= CHAPTERS[index].dur * 1000) {
+        if (index < CHAPTERS.length - 1) show(index + 1);
+        else { elapsed = CHAPTERS[index].dur * 1000; ended = true; }
+      }
+      render();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+
+  playBtn.addEventListener('click', toggle);
+  addEventListener('resize', fit);
+  addEventListener('keydown', e => {
+    if (e.key === ' ') { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
+    else if (e.key === 'ArrowLeft') { show(index - 1); setPlaying(true); }
+    else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
+  });
+
+  fit();
+  // "#4" opens at chapter 4. "#4,9" opens chapter 4 at second 9, paused (a still frame).
+  const [ch, sec] = location.hash.slice(1).split(',').map(Number);
+  if (ch && sec >= 0) { stage.classList.add('still'); show(ch - 1, sec); setPlaying(false); }
+  else show((ch || 1) - 1);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

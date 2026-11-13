@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="facts" content="build.in-microvm build.tenant-steps-isolated build.secrets-need-attested-images control.sealed-secrets network.egress-allowlist run.capability-gate teardown.daemon-kills-and-erases
+  platform.firecracker boot.own-kernel warm.same-tenant-same-deployment jail.jailer-chroot jail.uid-never-shared jail.no-capabilities guest.task-uid guest.no-new-privs
+  network.default-none network.types boot.network-none-no-eth0 network.no-guest-to-guest network.no-rule-trusts-guest
+  platform.runtimes cli.task-deploy cli.task-deploy-output cli.task-run">
+<title>Ignitify: run code you did not write</title>
+<style>
+  :root {
+    --bg: #0a0c11; --panel: #12161f; --line: #2a3142;
+    --text: #eef1f7; --muted: #8d97ad; --dim: #5d667a;
+    --ember: #ff6b2c; --ember-soft: #ffb089; --safe: #3fd6b8; --warn: #f2c04e; --threat: #ff4d5e;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #05060a; overflow: hidden; }
+  body { font-family: var(--sans); color: var(--text); }
+
+  #stage {
+    position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; overflow: hidden;
+    background:
+      radial-gradient(900px 500px at 88% -10%, rgba(255, 107, 44, .12), transparent 60%),
+      radial-gradient(700px 500px at 0% 110%, rgba(63, 214, 184, .07), transparent 60%),
+      var(--bg);
+  }
+  #stage.still * { transition: none !important; }
+  #stage.paused * { animation-play-state: paused !important; }
+
+  /* Timed elements: the script adds .on (visible) and .lit (active) from data-on / data-lit */
+  [data-on] { opacity: 0; transform: translateY(10px) scale(.98); transition: opacity .6s ease, transform .6s var(--ease), border-color .4s ease, box-shadow .4s ease; }
+  [data-on].on { opacity: 1; transform: none; }
+
+  .full { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .full.show { display: flex; }
+  .logo { width: 80px; height: 80px; filter: drop-shadow(0 0 28px rgba(255, 107, 44, .55)); }
+  .word { margin-top: 20px; font-size: 68px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
+  .word b { color: var(--ember); font-weight: inherit; }
+  .tagline { margin-top: 20px; font-size: 30px; font-weight: 500; line-height: 1.35; }
+  .tagline b { color: var(--ember); font-weight: 600; }
+  .sub { margin-top: 22px; font: 500 15px/1.5 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+  #frame { position: absolute; inset: 0; display: none; }
+  #frame.show { display: block; }
+  #kicker { position: absolute; left: 40px; top: 30px; font: 600 13px/1 var(--mono); letter-spacing: .18em; color: var(--ember); text-transform: uppercase; }
+  #title { position: absolute; left: 40px; top: 52px; font-size: 36px; font-weight: 700; letter-spacing: -.02em; }
+  .state { position: absolute; right: 40px; top: 46px; height: 40px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); display: flex; align-items: center; gap: 10px; font: 700 13px/1 var(--mono); letter-spacing: .1em; }
+  .state::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+  .state.amber { color: var(--warn); } .state.green { color: var(--safe); } .state.grey { color: var(--muted); }
+
+  .cap { position: absolute; left: 40px; right: 40px; top: 628px; font-size: 21px; color: var(--ember-soft); }
+  .cap b { color: var(--text); font-weight: 600; }
+
+  .tag { position: absolute; left: 18px; top: 14px; font: 600 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .n { position: absolute; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; }
+  .n b { font-size: 19px; }
+  .n span { font-size: 14px; color: var(--muted); }
+  .n.lit { border-color: var(--ember); box-shadow: 0 0 34px rgba(255, 107, 44, .32); }
+  .n.ok { border-color: rgba(63, 214, 184, .6); }
+  .n.ok b { color: var(--safe); font-size: 16px; }
+  .n.bad { border-color: rgba(255, 77, 94, .55); }
+  .n.bad b { color: var(--threat); font-size: 16px; }
+  .n.lim { border-color: rgba(242, 192, 78, .55); }
+  .n.lim b { color: var(--warn); font-size: 16px; }
+  .n.chip { border-radius: 999px; border-color: rgba(63, 214, 184, .6); }
+  .n.chip b { font: 600 15px/1 var(--mono); color: var(--safe); }
+
+  /* A machine: a dashed region that holds the boxes that run on it */
+  .zone { position: absolute; border: 1.5px dashed var(--line); border-radius: 18px; }
+  .zone > .tag { left: 18px; top: -7px; background: var(--bg); padding: 0 8px; color: var(--muted); }
+  .box { position: absolute; border: 2px solid var(--line); border-radius: 18px; background: rgba(18, 22, 31, .7); }
+
+
+
+  .wire { position: absolute; height: 2px; background: var(--line); }
+  .wire i { position: absolute; left: -6px; top: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 16px var(--ember); opacity: 0; }
+  .wire.teal i { background: var(--safe); box-shadow: 0 0 16px var(--safe); }
+  .wire.lit i { animation: go var(--t, .9s) linear infinite; }
+  .wire > span { position: absolute; left: 0; right: 0; top: -24px; text-align: center; font: 600 11px/1 var(--mono); letter-spacing: .06em; color: var(--muted); white-space: nowrap; }
+  @keyframes go { 0% { opacity: 0; transform: translateX(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(var(--len)); } }
+  @keyframes rise { 0% { opacity: 0; transform: translateY(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(calc(-1 * var(--len))); } }
+
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 50px; display: flex; align-items: center; gap: 14px; padding: 0 22px 0 30px; z-index: 10; }
+  #bar button { all: unset; cursor: pointer; }
+  #play { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: var(--text); }
+  #play:hover { background: rgba(255, 255, 255, .08); }
+  #bar button:focus-visible { outline: 2px solid var(--ember); border-radius: 6px; }
+  #play svg { width: 16px; height: 16px; fill: currentColor; }
+  #dots { display: flex; gap: 8px; flex: 1; }
+  #dots button { flex: var(--w, 1); padding-top: 6px; }
+  #dots span { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+  #dots span i { display: block; height: 100%; width: 0; background: var(--ember); }
+  #dots em { display: block; margin-top: 6px; font: 600 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; font-style: normal; color: var(--dim); }
+  #dots button.cur em { color: var(--text); }
+
+  .n.plain b { font-size: 16px; color: var(--ember-soft); }
+  .n.opt { border-style: dashed; }
+  .n.opt b { font-size: 16px; }
+  .n.opt span { font-size: 12px; }
+  .n.sm b { font-size: 13px; }
+  .n code { font: 500 10.5px/1.5 var(--mono); color: var(--ember-soft); white-space: pre; text-align: left; }
+  .state.ember { color: var(--ember-soft); }
+
+  /* Wires that run the other way, and wires that run up or down */
+  .wire.back i { left: auto; right: -6px; }
+  .wire.back.lit i { animation-name: goback; }
+  .wire.v { width: 2px; }
+  .wire.v > span { left: 12px; right: auto; top: 50%; transform: translateY(-50%); text-align: left; }
+  .wire.up i { top: auto; bottom: -6px; }
+  .wire.up.lit i { animation-name: rise; }
+  .wire.down.lit i { animation-name: fall; }
+  @keyframes goback { 0% { opacity: 0; transform: translateX(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(calc(-1 * var(--len))); } }
+  @keyframes fall { 0% { opacity: 0; transform: translateY(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(var(--len)); } }
+
+  /* The database and the row of the run */
+  .box.db { border-color: rgba(63, 214, 184, .6); }
+  .box.db > .tag { color: var(--safe); }
+  .box.db.lit { box-shadow: 0 0 34px rgba(63, 214, 184, .25); }
+  .row { position: absolute; left: 20px; width: 340px; height: 62px; padding: 11px 14px 0; border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel); white-space: nowrap; }
+  .row em { display: block; font: 600 12px/1 var(--mono); letter-spacing: .04em; font-style: normal; color: var(--muted); }
+  .row b { display: block; margin-top: 10px; font: 600 16px/1 var(--mono); }
+  .row .pend { color: var(--warn); } .row .act { color: var(--ember-soft); } .row .done { color: var(--safe); }
+  .row.lit { border-color: var(--ember); box-shadow: 0 0 24px rgba(255, 107, 44, .28); }
+
+  /* A panel: what one step checks or writes. A card: what the caller holds. */
+  .box > .tag { color: var(--muted); }
+  .box.card > .tag { color: var(--ember-soft); }
+  .box.vm { border-color: rgba(255, 176, 137, .5); }
+  .box.vm > .tag { color: var(--ember-soft); }
+  .term { position: absolute; left: 18px; right: 12px; top: 42px; font: 500 11px/1.7 var(--mono); white-space: pre; color: var(--text); }
+  .term em { font-style: normal; color: var(--muted); }
+  .term .pend { color: var(--warn); } .term .done { color: var(--safe); }
+
+  /* The intro motion: its own shapes */
+  #title { font-size: 34px; }
+  .cap { top: 632px; }
+  .drop[data-on] { transform: translateY(-110px); }
+  .drop[data-on].on { transform: none; }
+  .n.code b { font: 600 13px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ember-soft); }
+  .n.code code { font-size: 11.5px; color: var(--muted); }
+  .box.lit { border-color: var(--ember); box-shadow: 0 0 34px rgba(255, 107, 44, .28); }
+  .box > .tag.ember { color: var(--ember-soft); }
+
+  /* Scene 2: four customers on one shared bar, and the crack under them */
+  .shared { position: absolute; border: 2px solid var(--line); border-radius: 12px; background: var(--panel); display: grid; place-items: end center; padding-bottom: 12px; font: 600 15px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .c1 { border-color: rgba(255, 176, 137, .7); } .c2 { border-color: rgba(63, 214, 184, .7); }
+  .c3 { border-color: rgba(242, 192, 78, .7); } .c4 { border-color: rgba(122, 167, 255, .7); }
+  .crack { position: absolute; overflow: visible; }
+  .crack path { fill: none; stroke: var(--threat); stroke-width: 3; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 3s ease; filter: drop-shadow(0 0 6px rgba(255, 77, 94, .7)); }
+  .crack.on path { stroke-dashoffset: 0; }
+
+  /* Scenes 3 and 4: the five needs around the box */
+  .need { border-radius: 16px; justify-content: flex-start; padding-top: 13px; }
+  .need b { font-size: 18px; }
+  .need em { position: absolute; left: 0; right: 0; bottom: 11px; font: 700 15px/1 var(--mono); font-style: normal; transform: none; }
+  .need em.q { color: var(--warn); font-size: 19px; }
+  .need em.a { color: var(--safe); }
+  .need.ok { border-color: rgba(63, 214, 184, .6); }
+  .need.ok b { color: var(--text); font-size: 18px; }
+  .ring { position: absolute; overflow: visible; }
+  .ring ellipse { fill: none; stroke: var(--ember); stroke-width: 2; stroke-dasharray: 6 8; opacity: .8; }
+
+  /* Scene 5: walls from the outside in */
+  .wall { position: absolute; border: 2px solid var(--line); border-radius: 20px; }
+  .wall > .tag { top: -7px; background: var(--bg); padding: 0 8px; }
+  .wall.jail { border-style: dashed; border-color: rgba(242, 192, 78, .6); }
+  .wall.jail > .tag { color: var(--warn); }
+  .wall.vm { border-color: rgba(255, 176, 137, .7); background: rgba(18, 22, 31, .6); }
+  .wall.vm > .tag { color: var(--ember-soft); }
+
+  /* Scene 6: a line that stops */
+  .stop { position: absolute; width: 4px; height: 24px; border-radius: 2px; background: var(--threat); box-shadow: 0 0 12px rgba(255, 77, 94, .7); }
+  .term.big { font-size: 13.5px; line-height: 1.75; }
+  .term .hi { color: var(--ember-soft); }
+
+  /* The close */
+  .cta { margin-top: 34px; padding: 16px 34px; border: 2px solid var(--ember); border-radius: 14px; font-size: 22px; font-weight: 700; color: var(--text); box-shadow: 0 0 34px rgba(255, 107, 44, .3); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <div id="frame">
+    <div id="kicker"></div>
+    <div id="title"></div>
+
+    
+    <div class="box" style="left:300px; top:160px; width:680px; height:440px" data-on="0,.4-1,0" data-lit="0,6-1,0"><div class="tag">your product</div></div>
+    <div class="n code drop" style="left:335px; top:300px; width:190px; height:230px" data-on="0,1.2-1,0"><b>AI agent</b><code>plan = think(task)
+code = write(plan)
+run(code)</code></div>
+    <div class="n code drop" style="left:545px; top:300px; width:190px; height:230px" data-on="0,2.7-1,0"><b>customer script</b><code>rows = load(file)
+for r in rows:
+  convert(r)</code></div>
+    <div class="n code drop" style="left:755px; top:300px; width:190px; height:230px" data-on="0,4.2-1,0"><b>nightly job</b><code>every night:
+  build(report)
+  send(report)</code></div>
+    <div class="cap" data-on="0,.5-0,4.5"><b>AI agents</b> write programs and run them. <b>Customers</b> upload scripts. <b>Jobs</b> run every night.</div>
+    <div class="cap" data-on="0,4.5-1,0">Your team <b>did not write</b> that code.</div>
+
+    
+    <div class="n c1" style="left:250px; top:290px; width:170px; height:130px" data-on="1,.6-2,0"><b>customer A</b><span>container</span></div>
+    <div class="n c2" style="left:450px; top:290px; width:170px; height:130px" data-on="1,.9-2,0"><b>customer B</b><span>container</span></div>
+    <div class="n c3" style="left:650px; top:290px; width:170px; height:130px" data-on="1,1.2-2,0"><b>customer C</b><span>container</span></div>
+    <div class="n c4" style="left:850px; top:290px; width:170px; height:130px" data-on="1,1.5-2,0"><b>customer D</b><span>container</span></div>
+    <div class="shared" style="left:220px; top:430px; width:840px; height:84px" data-on="1,.4-2,0">one kernel and runtime</div>
+    <svg class="crack" style="left:220px; top:430px" width="840" height="70" viewBox="0 0 840 70" data-on="1,4-2,0"><path pathLength="1" d="M300 0 l12 12 -10 10 14 8 60 -6 50 8 60 -9 60 7 60 -8 70 9 60 -6 50 5 M302 22 l-70 8 -60 -7 -70 8 -50 -5"/></svg>
+    <div class="cap" data-on="1,.5-1,4">The usual answer is a container. Containers share <b>one kernel and one runtime</b>.</div>
+    <div class="cap" data-on="1,4-2,0">In 2025, <b>runtime flaws</b> let code escape to the host.</div>
+
+    
+    <div class="n" style="left:540px; top:320px; width:200px; height:130px" data-on="2,.4-3,.5"><b>a box</b><span>runs the code</span></div>
+    <div class="n lit" style="left:540px; top:320px; width:200px; height:130px" data-on="3,.5-4,0"><b style="color:var(--ember)">Ignitify</b><span>runs all of it</span></div>
+    <svg class="ring" style="left:310px; top:210px" width="660" height="350" viewBox="0 0 660 350" data-on="3,6.5-4,0"><ellipse cx="330" cy="175" rx="330" ry="175"/></svg>
+    <div class="n need" style="left:555px; top:180px; width:170px; height:70px" data-on="2,1.5-4,0" data-lit="3,1.0-3,2.0"><b>build</b><em class="q" data-on="2,1.5-3,1.0">?</em><em class="a" data-on="3,1.0">&#10003; isolated</em></div>
+    <div class="n need" style="left:870px; top:300px; width:170px; height:70px" data-on="2,2.5-4,0" data-lit="3,2.0-3,3.0"><b>secrets</b><em class="q" data-on="2,2.5-3,2.0">?</em><em class="a" data-on="3,2.0">&#10003; sealed</em></div>
+    <div class="n need" style="left:750px; top:500px; width:170px; height:70px" data-on="2,3.5-4,0" data-lit="3,3.0-3,4.0"><b>network</b><em class="q" data-on="2,3.5-3,3.0">?</em><em class="a" data-on="3,3.0">&#10003; host list</em></div>
+    <div class="n need" style="left:360px; top:500px; width:170px; height:70px" data-on="2,4.5-4,0" data-lit="3,4.0-3,5.0"><b>limits</b><em class="q" data-on="2,4.5-3,4.0">?</em><em class="a" data-on="3,4.0">&#10003; checked first</em></div>
+    <div class="n need" style="left:240px; top:300px; width:170px; height:70px" data-on="2,5.5-4,0" data-lit="3,5.0-3,6.0"><b>teardown</b><em class="q" data-on="2,5.5-3,5.0">?</em><em class="a" data-on="3,5.0">&#10003; VM erased</em></div>
+    <div class="cap" data-on="2,.5-2,4">A box to run code in is <b>only the start</b>.</div>
+    <div class="cap" data-on="2,4-3,0">You also need a build, secrets, a network fence, limits and <b>a clean end</b>.</div>
+    <div class="cap" data-on="3,.5-3,4"><b>Ignitify does all of it.</b> The build runs isolated. Secrets arrive sealed.</div>
+    <div class="cap" data-on="3,4-4,0">Limits are checked <b>before a run starts</b>. At the end, the machine is erased.</div>
+
+    
+    <div class="n c1" style="left:60px; top:200px; width:150px; height:80px" data-on="4,.4-5,0"><b style="font-size:16px">workload A</b></div>
+    <div class="shared" style="left:60px; top:288px; width:150px; height:34px; font-size:11px; place-items:center; padding:0" data-on="4,1-5,0">own kernel</div>
+    <div class="n c2" style="left:240px; top:200px; width:150px; height:80px" data-on="4,.4-5,0"><b style="font-size:16px">workload B</b></div>
+    <div class="shared" style="left:240px; top:288px; width:150px; height:34px; font-size:11px; place-items:center; padding:0" data-on="4,1-5,0">own kernel</div>
+    <div class="n c3" style="left:60px; top:370px; width:150px; height:80px" data-on="4,.4-5,0"><b style="font-size:16px">workload C</b></div>
+    <div class="shared" style="left:60px; top:458px; width:150px; height:34px; font-size:11px; place-items:center; padding:0" data-on="4,1-5,0">own kernel</div>
+    <div class="n c4" style="left:240px; top:370px; width:150px; height:80px" data-on="4,.4-5,0" data-lit="4,2-5,0"><b style="font-size:16px">workload D</b></div>
+    <div class="shared" style="left:240px; top:458px; width:150px; height:34px; font-size:11px; place-items:center; padding:0" data-on="4,1-5,0">own kernel</div>
+    <div class="wire" style="left:390px; top:410px; width:100px; --len:100px" data-on="4,2-5,0" data-lit="4,2-5,0"><i></i><span>one of them</span></div>
+    <div class="wall jail" style="left:490px; top:170px; width:730px; height:430px" data-on="4,2.5-5,0"><div class="tag">jail · locked directory · own user id</div></div>
+    <div class="wall vm" style="left:550px; top:235px; width:610px; height:320px" data-on="4,4-5,0"><div class="tag">MicroVM · own kernel</div></div>
+    <div class="n" style="left:660px; top:310px; width:390px; height:180px" data-on="4,5.5-5,0" data-lit="4,5.5-5,0"><b style="font-size:24px">your code</b><span style="font-size:16px">no privileges</span></div>
+    <div class="cap" data-on="4,.5-4,4">Each workload runs in <b>its own small VM</b>, with its own kernel.</div>
+    <div class="cap" data-on="4,4-5,0"><b>A jail</b> surrounds it. Your code runs with <b>no privileges</b>.</div>
+
+    
+    <div class="box vm" style="left:120px; top:200px; width:290px; height:380px" data-on="5,.4-6,0"><div class="tag">MicroVM · your task</div></div>
+    <div class="n" style="left:145px; top:330px; width:140px; height:120px" data-on="5,.4-6,0"><b>your code</b></div>
+    <div class="wire" style="left:300px; top:290px; width:108px; --len:108px; --t:1.1s" data-on="5,.6-5,3.5" data-lit="5,.6-5,3.5"><i></i></div>
+    <div class="stop" style="left:407px; top:279px" data-on="5,.6-5,3.5"></div>
+    <div class="wire" style="left:300px; top:390px; width:108px; --len:108px; --t:1.3s" data-on="5,.6-5,3.5" data-lit="5,.6-5,3.5"><i></i></div>
+    <div class="stop" style="left:407px; top:379px" data-on="5,.6-5,3.5"></div>
+    <div class="wire" style="left:300px; top:490px; width:108px; --len:108px; --t:1s" data-on="5,.6-5,3.5" data-lit="5,.6-5,3.5"><i></i></div>
+    <div class="stop" style="left:407px; top:479px" data-on="5,.6-5,3.5"></div>
+    <div class="n bad" style="left:470px; top:355px; width:300px; height:70px" data-on="5,1.2-5,3.5"><b>network: none</b><span>no network device in the VM</span></div>
+    <div class="box card" style="left:470px; top:190px; width:300px; height:105px" data-on="5,3.5-6,0">
+      <div class="tag">egress_allow · your list</div>
+      <div class="term big">- api.example.com</div>
+    </div>
+    <div class="wire teal" style="left:410px; top:360px; width:490px; --len:490px; --t:1.4s" data-on="5,4.3-6,0" data-lit="5,4.3-6,0"><i></i><span>on the list: passes</span></div>
+    <div class="n ok" style="left:900px; top:320px; width:280px; height:80px" data-on="5,4.3-6,0"><b>api.example.com</b></div>
+    <div class="wire" style="left:410px; top:510px; width:240px; --len:240px; --t:1.2s" data-on="5,5.5-6,0" data-lit="5,5.5-6,0"><i></i></div>
+    <div class="stop" style="left:650px; top:499px" data-on="5,5.5-6,0"></div>
+    <div class="n bad" style="left:670px; top:490px; width:130px; height:42px" data-on="5,5.5-6,0"><b>blocked</b></div>
+    <div class="box vm" style="left:900px; top:470px; width:280px; height:80px; display:grid; place-items:center" data-on="5,5.5-6,0"><b style="font-size:17px">another VM</b></div>
+    <div class="cap" data-on="5,.5-5,3.5">By default a task has <b>no network</b>.</div>
+    <div class="cap" data-on="5,3.5-6,0">If it needs the internet, you <b>list the exact hosts</b> it may reach. A VM cannot reach another VM.</div>
+
+    
+    <div class="box card" style="left:120px; top:150px; width:640px; height:185px" data-on="6,.4-7,0">
+      <div class="tag">my-task · sample code</div>
+      <div class="term big"><em>export async function</em> run(payload, ctx) {
+  <em>const</em> rows = <em>await</em> load(payload.url);
+  <em>return</em> { ok: true, count: rows.length };
+}</div>
+    </div>
+    <div class="n chip" style="left:820px; top:150px; width:150px; height:50px" data-on="6,1-7,0"><b>Node</b></div>
+    <div class="n chip" style="left:990px; top:150px; width:150px; height:50px" data-on="6,1.3-7,0"><b>Python</b></div>
+    <div class="n chip" style="left:820px; top:215px; width:150px; height:50px" data-on="6,1.6-7,0"><b>Go</b></div>
+    <div class="n chip" style="left:990px; top:215px; width:150px; height:50px" data-on="6,1.9-7,0"><b>Rust</b></div>
+    <div class="box" style="left:120px; top:355px; width:1020px; height:225px" data-on="6,2.8-7,0" data-lit="6,2.8-6,6.3">
+      <div class="tag">terminal</div>
+      <div class="term big"><span data-on="6,3"><em>$</em> <span class="hi">ignitify task:deploy my-task</span></span>
+<span data-on="6,3.8">Uploading my-task</span>
+<span data-on="6,4.4">Building image img_4Tq8…</span>
+<span data-on="6,5.2"><span class="done">&#10003; Image built</span></span>
+<span data-on="6,5.6">deployment  <span class="done">READY</span></span>
+<span data-on="6,6.6"><em>$</em> <span class="hi">ignitify task:run my-task --payload '{"url":"https://api.example.com/rows"}'</span></span></div>
+    </div>
+    <div class="cap" data-on="6,.5-6,3">Write your task in <b>Node, Python, Go or Rust</b>.</div>
+    <div class="cap" data-on="6,3-6,6.3"><b>One command</b> deploys it.</div>
+    <div class="cap" data-on="6,6.3-7,0"><b>One command</b> runs it.</div>
+  </div>
+
+  
+  <section class="full" data-ch="7">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g-close" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g-close)"/>
+    </svg>
+    <div class="word" data-on="7,.4">Ignit<b>ify</b></div>
+    <div class="tagline" data-on="7,1.4">Run code <b>you did not write</b>.</div>
+    <div class="sub" data-on="7,2.6">from build to teardown</div>
+    <div class="cta" id="closing" data-on="7,4"></div>
+  </section>
+
+  <div id="bar">
+    <button id="play" aria-label="Pause"></button>
+    <div id="dots"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const CHAPTERS = [
+    { label: 'The code', dur: 8, kicker: '1 of 8', title: 'Your product runs code you did not write.' },
+    { label: 'The risk', dur: 9, kicker: '2 of 8', title: 'Containers share one kernel and runtime. Flaws break through.' },
+    { label: 'The real job', dur: 9, kicker: '3 of 8', title: 'The box is easy. Everything around it is not.' },
+    { label: 'The answer', dur: 9, kicker: '4 of 8', title: 'Ignitify runs all of it, from build to teardown.' },
+    { label: 'The walls', dur: 9, kicker: '5 of 8', title: 'Own VM. Own kernel. A jail. No privileges.' },
+    { label: 'The network', dur: 8, kicker: '6 of 8', title: 'No network unless you ask. Then only the hosts you list.' },
+    { label: 'The start', dur: 9, kicker: '7 of 8', title: 'Node, Python, Go or Rust. One command to deploy.' },
+    { label: 'Next', dur: 9 },
+  ];
+  // The last line of the motion. The website ending is the default. Open the file with
+  // "?investor" for the investor ending; until the ask is written, it shows the website line.
+  const CLOSING = { website: 'Ask for access', investor: '' };
+  document.getElementById('closing').textContent =
+    (new URLSearchParams(location.search).has('investor') && CLOSING.investor) || CLOSING.website;
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const kicker = document.getElementById('kicker');
+  const title = document.getElementById('title');
+  const dots = document.getElementById('dots');
+  const playBtn = document.getElementById('play');
+  const fulls = [...stage.querySelectorAll('.full')];
+  const ICON = {
+    pause: '<svg viewBox="0 0 16 16"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>',
+    play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11a.5.5 0 0 0 .77.42l8.5-5.5a.5.5 0 0 0 0-.84l-8.5-5.5A.5.5 0 0 0 4 2.5z"/></svg>',
+    replay: '<svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 1-4.6 3H1.3A7 7 0 1 0 8 1V0L4.5 2 8 4z"/></svg>',
+  };
+
+  // A moment is "chapter,seconds". An attribute holds intervals: "2,4-5,6;6,1" (an open end = for ever).
+  const CHAPTER_SPAN = 1000;
+  const moment = s => { const [c, t] = s.split(',').map(Number); return c * CHAPTER_SPAN + t; };
+  const intervals = s => s.split(';').map(part => { const [a, b] = part.split('-'); return [moment(a), b ? moment(b) : Infinity]; });
+  const within = (list, m) => list.some(([a, b]) => m >= a && m < b);
+  const timed = [...stage.querySelectorAll('[data-on]')].map(el => ({
+    el, on: intervals(el.dataset.on), lit: el.dataset.lit ? intervals(el.dataset.lit) : null,
+  }));
+
+  const fills = CHAPTERS.map((c, n) => {
+    const b = document.createElement('button');
+    b.style.setProperty('--w', c.dur);
+    b.setAttribute('aria-label', 'Go to: ' + c.label);
+    b.innerHTML = '<span><i></i></span><em>' + c.label + '</em>';
+    b.addEventListener('click', () => { show(n); setPlaying(true); });
+    dots.appendChild(b);
+    return { b, i: b.querySelector('i') };
+  });
+
+  let index = 0, elapsed = 0, playing = true, ended = false, last = performance.now();
+
+  function render() {
+    const c = CHAPTERS[index], m = index * CHAPTER_SPAN + elapsed / 1000;
+    for (const { el, on, lit } of timed) {
+      el.classList.toggle('on', within(on, m));
+      if (lit) el.classList.toggle('lit', within(lit, m));
+    }
+    fills.forEach((f, n) => {
+      f.i.style.width = n < index ? '100%' : n > index ? '0' : Math.min(100, elapsed / (c.dur * 1000) * 100) + '%';
+      f.b.classList.toggle('cur', n === index);
+    });
+    const state = ended ? 'replay' : playing ? 'pause' : 'play';
+    if (playBtn.dataset.state !== state) {
+      playBtn.dataset.state = state;
+      playBtn.innerHTML = ICON[state];
+      playBtn.setAttribute('aria-label', state[0].toUpperCase() + state.slice(1));
+    }
+  }
+
+  function show(n, atSec = 0) {
+    index = Math.max(0, Math.min(CHAPTERS.length - 1, n));
+    const c = CHAPTERS[index];
+    elapsed = atSec * 1000; ended = false;
+    fulls.forEach(f => f.classList.toggle('show', Number(f.dataset.ch) === index));
+    frame.classList.toggle('show', Boolean(c.title));
+    if (c.title) { kicker.textContent = c.kicker; title.textContent = c.title; }
+    render();
+  }
+
+  function setPlaying(p) { playing = p; stage.classList.toggle('paused', !p); render(); }
+  function toggle() {
+    if (ended) { show(0); setPlaying(true); return; }
+    setPlaying(!playing);
+  }
+
+  function tick(now) {
+    const dt = Math.min(100, now - last); last = now;
+    if (playing && !ended) {
+      elapsed += dt;
+      if (elapsed >= CHAPTERS[index].dur * 1000) {
+        if (index < CHAPTERS.length - 1) show(index + 1);
+        else { elapsed = CHAPTERS[index].dur * 1000; ended = true; }
+      }
+      render();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+
+  playBtn.addEventListener('click', toggle);
+  addEventListener('resize', fit);
+  addEventListener('keydown', e => {
+    if (e.key === ' ') { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
+    else if (e.key === 'ArrowLeft') { show(index - 1); setPlaying(true); }
+    else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
+  });
+
+  fit();
+  // "#4" opens at chapter 4. "#4,9" opens chapter 4 at second 9, paused (a still frame).
+  const [ch, sec] = location.hash.slice(1).split(',').map(Number);
+  if (ch && sec >= 0) { stage.classList.add('still'); show(ch - 1, sec); setPlaying(false); }
+  else show((ch || 1) - 1);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

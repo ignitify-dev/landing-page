@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="facts" content="boot.code-read-only boot.packages-optional boot.packages-read-only build.brain-relays-image build.bundle
+  build.cache-ceiling build.cli-uploads-source build.daemon-verified-copy build.deadline build.egress-allowlist
+  build.failed-names-stage build.host-checks-digest build.host-fetches-images build.in-microvm
+  build.install-from-lockfile build.lost-vm-retried build.output-attested build.package-cache build.packages-image
+  build.packages-job-first build.prepush build.row-and-job-one-transaction build.same-content-no-build
+  build.secrets-need-attested-images build.smoke-boot build.source-published build.states build.store-brain-writes
+  build.store-by-content-hash build.tenant-steps-isolated build.vm-shape cli.task-deploy cli.task-deploy-output
+  platform.postgres-shared teardown.kept-on-purpose">
+<title>Ignitify: build and deploy in brief</title>
+<style>
+  :root {
+    --bg: #0a0c11; --panel: #12161f; --line: #2a3142;
+    --text: #eef1f7; --muted: #8d97ad; --dim: #5d667a;
+    --ember: #ff6b2c; --ember-soft: #ffb089; --safe: #3fd6b8; --warn: #f2c04e; --threat: #ff4d5e;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #05060a; overflow: hidden; }
+  body { font-family: var(--sans); color: var(--text); }
+
+  #stage {
+    position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; overflow: hidden;
+    background:
+      radial-gradient(900px 500px at 88% -10%, rgba(255, 107, 44, .12), transparent 60%),
+      radial-gradient(700px 500px at 0% 110%, rgba(63, 214, 184, .07), transparent 60%),
+      var(--bg);
+  }
+  #stage.still * { transition: none !important; }
+  #stage.paused * { animation-play-state: paused !important; }
+
+  /* Timed elements: the script adds .on (visible) and .lit (active) from data-on / data-lit */
+  [data-on] { opacity: 0; transform: translateY(10px) scale(.98); transition: opacity .6s ease, transform .6s var(--ease), border-color .4s ease, box-shadow .4s ease; }
+  [data-on].on { opacity: 1; transform: none; }
+
+  .full { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .full.show { display: flex; }
+  .logo { width: 80px; height: 80px; filter: drop-shadow(0 0 28px rgba(255, 107, 44, .55)); }
+  .word { margin-top: 20px; font-size: 68px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
+  .word b { color: var(--ember); font-weight: inherit; }
+  .tagline { margin-top: 20px; font-size: 30px; font-weight: 500; line-height: 1.35; }
+  .tagline b { color: var(--ember); font-weight: 600; }
+  .sub { margin-top: 22px; font: 500 15px/1.5 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+  #frame { position: absolute; inset: 0; display: none; }
+  #frame.show { display: block; }
+  #kicker { position: absolute; left: 40px; top: 30px; font: 600 13px/1 var(--mono); letter-spacing: .18em; color: var(--ember); text-transform: uppercase; }
+  #title { position: absolute; left: 40px; top: 52px; font-size: 36px; font-weight: 700; letter-spacing: -.02em; }
+  .state { position: absolute; right: 40px; top: 46px; height: 40px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); display: flex; align-items: center; gap: 10px; font: 700 13px/1 var(--mono); letter-spacing: .1em; }
+  .state::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+  .state.amber { color: var(--warn); } .state.green { color: var(--safe); } .state.grey { color: var(--muted); } .state.ember { color: var(--ember); }
+
+  .cap { position: absolute; left: 40px; right: 40px; top: 628px; font-size: 21px; color: var(--ember-soft); }
+  .cap b { color: var(--text); font-weight: 600; }
+
+  .tag { position: absolute; left: 18px; top: 14px; font: 600 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .n { position: absolute; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; }
+  .n b { font-size: 19px; }
+  .n span { font-size: 14px; color: var(--muted); }
+  .n.lit { border-color: var(--ember); box-shadow: 0 0 34px rgba(255, 107, 44, .32); }
+  .n.ok { border-color: rgba(63, 214, 184, .6); }
+  .n.ok b { color: var(--safe); }
+  .n.bad { border-color: rgba(255, 77, 94, .55); }
+  .n.bad b { color: var(--threat); font-size: 16px; }
+  .box { position: absolute; border: 2px solid var(--line); border-radius: 18px; background: rgba(18, 22, 31, .7); }
+
+  .wire { position: absolute; height: 2px; background: var(--line); }
+  .wire i { position: absolute; left: -6px; top: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 16px var(--ember); opacity: 0; }
+  .wire.teal i { background: var(--safe); box-shadow: 0 0 16px var(--safe); }
+  .wire.lit i { animation: go var(--t, .9s) linear infinite; }
+  @keyframes go { 0% { opacity: 0; transform: translateX(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(var(--len)); } }
+
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 50px; display: flex; align-items: center; gap: 14px; padding: 0 22px 0 30px; z-index: 10; }
+  #bar button { all: unset; cursor: pointer; }
+  #play { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: var(--text); }
+  #play:hover { background: rgba(255, 255, 255, .08); }
+  #bar button:focus-visible { outline: 2px solid var(--ember); border-radius: 6px; }
+  #play svg { width: 16px; height: 16px; fill: currentColor; }
+  #dots { display: flex; gap: 8px; flex: 1; }
+  #dots button { flex: var(--w, 1); padding-top: 6px; }
+  #dots span { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+  #dots span i { display: block; height: 100%; width: 0; background: var(--ember); }
+  #dots em { display: block; margin-top: 6px; font: 600 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; font-style: normal; color: var(--dim); }
+  #dots button.cur em { color: var(--text); }
+  /* Zones: a dashed frame with a label on its top edge */
+  .zone { position: absolute; border: 1.5px dashed var(--line); border-radius: 18px; }
+  .zone > .tag { left: 18px; top: -7px; background: var(--bg); padding: 0 8px; color: var(--muted); }
+  .box > .tag { color: var(--muted); }
+  .box.lit, .n.lit { border-color: var(--ember); box-shadow: 0 0 34px rgba(255, 107, 44, .32); }
+  .box.teal { border-color: rgba(63, 214, 184, .6); } .box.teal > .tag { color: var(--safe); }
+  .box.gold { border-color: #e0b64f; } .box.gold > .tag { color: #e0b64f; }
+  .chip { position: absolute; height: 38px; padding: 0 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #0d1017; display: flex; align-items: center; justify-content: center; font: 600 13px/1 var(--mono); color: var(--text); white-space: nowrap; }
+  .chip.lit { border-color: var(--ember); color: var(--ember-soft); }
+  .chip.ok { border-color: rgba(63, 214, 184, .6); color: var(--safe); }
+  .chip.dim { color: var(--muted); }
+  .wire.rev.lit i { animation-name: back; }
+  @keyframes back { 0% { opacity: 0; transform: translateX(var(--len)); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(0); } }
+  .wire.v { width: 2px; height: auto; }
+  .wire.v.lit i { animation-name: down; }
+  @keyframes down { 0% { opacity: 0; transform: translateY(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(var(--len)); } }
+  .term { position: absolute; border: 1.5px solid var(--line); border-radius: 14px; background: #07090d; padding: 40px 16px 14px; font: 500 12px/2 var(--mono); color: var(--muted); }
+  .term > .tag { color: var(--muted); }
+  .term p { white-space: nowrap; }
+  .term p b { color: var(--text); font-weight: 600; }
+  .term p.ok { color: var(--safe); }
+  .term p.bad { color: var(--threat); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <section class="full" data-ch="0">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g)"/>
+    </svg>
+    <div class="word" data-on="0,.4">From source to <b>image</b></div>
+    <div class="sub" data-on="0,1.4">Ignitify · build and deploy, in five steps</div>
+  </section>
+
+  
+  <div id="frame">
+    <div id="kicker"></div>
+    <div id="title"></div>
+
+    <div class="state amber" data-on="1,8-4,7.4">deployment · BUILDING</div>
+    <div class="state green" data-on="4,7.4">deployment · READY</div>
+
+    
+    <div class="term" style="left:40px; top:112px; width:300px; height:236px" data-on="1,.3">
+      <div class="tag">your machine</div>
+      <p data-on="1,.6"><b>$ ignitify task:deploy thumbs</b></p>
+      <p data-on="1,1.4">Uploading thumbs (3.1 KiB)</p>
+      <p data-on="1,9.2">Building image</p>
+      <p data-on="1,9.2">019a7c1e-2f60-7b17-9a55-1c8e3f9c2a41</p>
+      <p class="ok" data-on="4,7.8">✓ Image built</p>
+    </div>
+    <div class="n ok" style="left:40px; top:372px; width:300px; height:96px" data-on="1,4-1,7.6"><b>Same content, READY</b><span>used again · no new build</span></div>
+    <div class="n bad" style="left:40px; top:372px; width:300px; height:96px" data-on="4,10.6-5,0"><b>Build fails → FAILED</b><span>the reason names the stage</span></div>
+    <div class="n" style="left:40px; top:484px; width:300px; height:96px" data-on="4,12-5,0"><b>Build VM lost</b><span>tried again · 3 build VMs at most</span></div>
+
+    <div class="wire" style="left:340px; top:202px; width:60px; --len:60px" data-on="1,.6" data-lit="1,1.4-1,4"><i></i></div>
+
+    
+    <div class="zone" style="left:370px; top:112px; width:400px; height:500px" data-on="1,.3">
+      <div class="tag">control</div>
+      <div class="n" style="left:30px; top:44px; width:340px; height:92px" data-on="1,.5" data-lit="1,1.4-1,4;1,7.6-1,12;2,.4-2,7.6;4,3.8-4,7.4;5,.4-5,3.8"><b>Brain</b><span>decides · never builds</span></div>
+      <div class="box" style="left:30px; top:166px; width:340px; height:128px" data-on="1,7.6">
+        <div class="tag">PostgreSQL · one transaction</div>
+        <div class="chip" style="left:18px; top:56px; width:146px" data-on="1,8" data-lit="1,8-1,12">deployment row</div>
+        <div class="chip" style="left:176px; top:56px; width:146px" data-on="1,8.6" data-lit="1,8.6-1,12">build job</div>
+      </div>
+      <div class="box teal" style="left:30px; top:324px; width:340px; height:152px" data-on="2,.4">
+        <div class="tag">Artefact store · by content hash</div>
+        <div class="chip" style="left:18px; top:46px; width:146px" data-on="2,1.4" data-lit="2,1.4-2,4">source image</div>
+        <div class="chip ok" style="left:176px; top:46px; width:146px" data-on="4,5.8" data-lit="4,5.8-4,7.4">code image</div>
+        <div class="chip dim" style="left:18px; top:96px; width:304px" data-on="2,11.4">packages image · some tasks</div>
+      </div>
+    </div>
+
+    <div class="wire" style="left:740px; top:190px; width:84px; --len:84px" data-on="2,4.2-4,.4;5,.4" data-lit="2,4.2-2,7.6;5,.4-5,3.8"><i></i></div>
+    <div class="wire teal rev" style="left:740px; top:216px; width:84px; --len:84px" data-on="4,.8-5,0" data-lit="4,3.8-4,7.4"><i></i></div>
+    <div class="wire teal" style="left:740px; top:540px; width:84px; --len:84px" data-on="5,3.8" data-lit="5,3.8-5,7.2"><i></i></div>
+
+    
+    <div class="zone" style="left:800px; top:112px; width:440px; height:500px" data-on="2,4.2">
+      <div class="tag">fleet host</div>
+
+      
+      <div class="box gold" style="left:24px; top:40px; width:392px; height:262px" data-on="2,4.8-4,.4" data-lit="3,.4-3,3.6">
+        <div class="tag">Build MicroVM</div>
+        <div class="chip" style="left:18px; top:44px; width:112px" data-on="2,7.6">2 vCPU</div>
+        <div class="chip" style="left:140px; top:44px; width:112px" data-on="2,8.1">2048 MiB</div>
+        <div class="chip" style="left:262px; top:44px; width:112px" data-on="2,8.6">15 min</div>
+        <div class="n" style="left:18px; top:96px; width:356px; height:46px" data-on="3,6.8" data-lit="3,6.8-3,8.2"><b style="font-size:16px">Install from the lockfile</b></div>
+        <div class="n" style="left:18px; top:150px; width:356px; height:46px" data-on="3,8.2" data-lit="3,8.2-3,9.6"><b style="font-size:16px">Bundle · a Node task</b></div>
+        <div class="n" style="left:18px; top:204px; width:356px; height:46px" data-on="3,9.6" data-lit="3,9.6-3,12"><b style="font-size:16px">Smoke boot · start the task once</b></div>
+      </div>
+      <div class="n" style="left:24px; top:320px; width:190px; height:72px" data-on="3,3.6-4,.4" data-lit="3,3.6-3,5"><b>Package cache</b><span>on this host</span></div>
+      <div class="n" style="left:226px; top:320px; width:190px; height:72px" data-on="3,5-4,.4" data-lit="3,5-3,6.8"><b>Allow list</b><span>registries + your hosts</span></div>
+      <div class="n" style="left:24px; top:40px; width:392px; height:100px" data-on="4,.8-5,0" data-lit="4,.8-4,3.8"><b>Host daemon</b><span>hashes the image · signs the digest</span></div>
+
+      
+      <div class="n" style="left:24px; top:40px; width:392px; height:80px" data-on="5,.4" data-lit="5,.4-5,7.2"><b>Host agent</b><span>pulls by digest · checks the hash</span></div>
+      <div class="box teal" style="left:24px; top:138px; width:392px; height:112px" data-on="5,8.4">
+        <div class="tag">Run MicroVM</div>
+        <div class="chip ok" style="left:18px; top:54px; width:166px" data-on="5,8.8">code · read-only</div>
+        <div class="chip ok" style="left:194px; top:54px; width:180px" data-on="5,9.2">packages · read-only</div>
+      </div>
+      <div class="n" style="left:24px; top:268px; width:392px; height:80px" data-on="5,7.2" data-lit="5,7.2-5,8.4"><b>Host daemon</b><span>its own copy · hashed again</span></div>
+      <div class="n" style="left:24px; top:366px; width:392px; height:104px" data-on="5,3.8" data-lit="5,3.8-5,7.2"><b>Image cache</b><span>limit 200 GiB · stays after a VM is gone</span></div>
+    </div>
+
+    
+    <div class="cap" data-on="1,.5-1,4">The CLI uploads the task source to a brain.</div>
+    <div class="cap" data-on="1,4-1,7.6"><b>Same content, and that deployment is READY?</b> The brain uses it again. No new build.</div>
+    <div class="cap" data-on="1,7.6-2,.4"><b>New content:</b> the brain writes the deployment row and the build job in one transaction.</div>
+    <div class="cap" data-on="2,.4-2,4.2">The brain packs the source into an image and puts it in the artefact store.</div>
+    <div class="cap" data-on="2,4.2-2,7.6"><b>Then it starts a build MicroVM on a fleet host.</b> The brain never builds.</div>
+    <div class="cap" data-on="2,7.6-2,10.6">By default, a build VM has 2 vCPUs, 2048 MiB of memory and 15 minutes.</div>
+    <div class="cap" data-on="2,10.6-3,.4"><b>New system packages?</b> A packages build runs first. The code build follows it.</div>
+    <div class="cap" data-on="3,.4-3,3.6"><b>The tenant's build steps run here,</b> with the isolation of a task.</div>
+    <div class="cap" data-on="3,3.6-3,6.8">Packages come through a package cache on the host. The internet is an allow list.</div>
+    <div class="cap" data-on="3,6.8-3,9.6">The build installs the dependencies from the lockfile. It bundles a Node task.</div>
+    <div class="cap" data-on="3,9.6-4,.4"><b>Then a test:</b> the build starts the task one time.</div>
+    <div class="cap" data-on="4,.4-4,3.8">The build VM is done. <b>The host daemon hashes the image and signs the digest.</b></div>
+    <div class="cap" data-on="4,3.8-4,7.4">The brain checks the signature, then copies the image into the store. The brain is its one writer.</div>
+    <div class="cap" data-on="4,7.4-4,10.6"><b>The deployment is READY.</b> The store keeps the image by its content hash.</div>
+    <div class="cap" data-on="4,10.6-5,.4">A build that fails makes the deployment FAILED. A build that loses its VM is tried again.</div>
+    <div class="cap" data-on="5,.4-5,3.8"><b>At READY, the brain tells each active host to fetch the image.</b> This is best effort.</div>
+    <div class="cap" data-on="5,3.8-5,7.2">A host without the image fetches it when a run needs it. It keeps only bytes with the right hash.</div>
+    <div class="cap" data-on="5,7.2-5,10.6">The daemon hashes its own copy. <b>The run VM mounts the drives read-only.</b> Packages are optional.</div>
+    <div class="cap" data-on="5,10.6"><b>Secrets go only to a VM that booted from the images of its run.</b></div>
+  </div>
+
+  <section class="full" data-ch="6">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g)"/></svg>
+    <div class="tagline" style="font-size:36px" data-on="6,.4">Built in a VM. Named by its hash.<br><b>Checked on the host.</b></div>
+    <div class="sub" data-on="6,2">Ignitify · build and deploy</div>
+  </section>
+
+  <div id="bar">
+    <button id="play" aria-label="Pause"></button>
+    <div id="dots"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const CHAPTERS = [
+    { label: 'Intro', dur: 4 },
+    { label: 'Upload', dur: 12, kicker: 'Step 1 of 5', title: 'The source goes to a brain' },
+    { label: 'Build VM', dur: 13, kicker: 'Step 2 of 5', title: 'A VM for the build' },
+    { label: 'Build', dur: 12, kicker: 'Step 3 of 5', title: 'Inside the build VM' },
+    { label: 'Ready', dur: 14, kicker: 'Step 4 of 5', title: 'From the build VM to READY' },
+    { label: 'Hosts', dur: 14, kicker: 'Step 5 of 5', title: 'The image on a fleet host' },
+    { label: 'Close', dur: 6 },
+  ];
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const kicker = document.getElementById('kicker');
+  const title = document.getElementById('title');
+  const dots = document.getElementById('dots');
+  const playBtn = document.getElementById('play');
+  const fulls = [...stage.querySelectorAll('.full')];
+  const ICON = {
+    pause: '<svg viewBox="0 0 16 16"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>',
+    play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11a.5.5 0 0 0 .77.42l8.5-5.5a.5.5 0 0 0 0-.84l-8.5-5.5A.5.5 0 0 0 4 2.5z"/></svg>',
+    replay: '<svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 1-4.6 3H1.3A7 7 0 1 0 8 1V0L4.5 2 8 4z"/></svg>',
+  };
+
+  // A moment is "chapter,seconds". An attribute holds intervals: "2,4-5,6;6,1" (an open end = for ever).
+  const CHAPTER_SPAN = 1000;
+  const moment = s => { const [c, t] = s.split(',').map(Number); return c * CHAPTER_SPAN + t; };
+  const intervals = s => s.split(';').map(part => { const [a, b] = part.split('-'); return [moment(a), b ? moment(b) : Infinity]; });
+  const within = (list, m) => list.some(([a, b]) => m >= a && m < b);
+  const timed = [...stage.querySelectorAll('[data-on]')].map(el => ({
+    el, on: intervals(el.dataset.on), lit: el.dataset.lit ? intervals(el.dataset.lit) : null,
+  }));
+
+  const fills = CHAPTERS.map((c, n) => {
+    const b = document.createElement('button');
+    b.style.setProperty('--w', c.dur);
+    b.setAttribute('aria-label', 'Go to: ' + c.label);
+    b.innerHTML = '<span><i></i></span><em>' + c.label + '</em>';
+    b.addEventListener('click', () => { show(n); setPlaying(true); });
+    dots.appendChild(b);
+    return { b, i: b.querySelector('i') };
+  });
+
+  let index = 0, elapsed = 0, playing = true, ended = false, last = performance.now();
+
+  function render() {
+    const c = CHAPTERS[index], m = index * CHAPTER_SPAN + elapsed / 1000;
+    for (const { el, on, lit } of timed) {
+      el.classList.toggle('on', within(on, m));
+      if (lit) el.classList.toggle('lit', within(lit, m));
+    }
+    fills.forEach((f, n) => {
+      f.i.style.width = n < index ? '100%' : n > index ? '0' : Math.min(100, elapsed / (c.dur * 1000) * 100) + '%';
+      f.b.classList.toggle('cur', n === index);
+    });
+    const state = ended ? 'replay' : playing ? 'pause' : 'play';
+    if (playBtn.dataset.state !== state) {
+      playBtn.dataset.state = state;
+      playBtn.innerHTML = ICON[state];
+      playBtn.setAttribute('aria-label', state[0].toUpperCase() + state.slice(1));
+    }
+  }
+
+  function show(n, atSec = 0) {
+    index = Math.max(0, Math.min(CHAPTERS.length - 1, n));
+    const c = CHAPTERS[index];
+    elapsed = atSec * 1000; ended = false;
+    fulls.forEach(f => f.classList.toggle('show', Number(f.dataset.ch) === index));
+    frame.classList.toggle('show', Boolean(c.title));
+    if (c.title) { kicker.textContent = c.kicker; title.textContent = c.title; }
+    render();
+  }
+
+  function setPlaying(p) { playing = p; stage.classList.toggle('paused', !p); render(); }
+  function toggle() {
+    if (ended) { show(0); setPlaying(true); return; }
+    setPlaying(!playing);
+  }
+
+  function tick(now) {
+    const dt = Math.min(100, now - last); last = now;
+    if (playing && !ended) {
+      elapsed += dt;
+      if (elapsed >= CHAPTERS[index].dur * 1000) {
+        if (index < CHAPTERS.length - 1) show(index + 1);
+        else { elapsed = CHAPTERS[index].dur * 1000; ended = true; }
+      }
+      render();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+
+  playBtn.addEventListener('click', toggle);
+  addEventListener('resize', fit);
+  addEventListener('keydown', e => {
+    if (e.key === ' ') { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
+    else if (e.key === 'ArrowLeft') { show(index - 1); setPlaying(true); }
+    else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
+  });
+
+  fit();
+  // "#4" opens at chapter 4. "#4,9" opens chapter 4 at second 9, paused (a still frame).
+  const [ch, sec] = location.hash.slice(1).split(',').map(Number);
+  if (ch && sec >= 0) { stage.classList.add('still'); show(ch - 1, sec); setPlaying(false); }
+  else show((ch || 1) - 1);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

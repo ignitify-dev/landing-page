@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="facts" content="boot.api-socket-in-jail boot.arg-guest-address boot.arg-init boot.arg-ipv6-off boot.arg-panic boot.call-order
+  boot.code-read-only boot.instance-start-last boot.machine-config boot.network-none-no-eth0 boot.own-kernel boot.packages-optional
+  boot.packages-read-only boot.rootfs-read-only boot.rootfs-shared boot.scratch-private boot.scratch-writable boot.sealed-at-start
+  control.agent-daemon-unix-socket control.daemon-local-only control.daemon-privileged control.guest-dials-vsock control.identity-by-socket control.not-on-network
+  control.operations control.relay-path control.spawn-via-agent guest.no-new-privs guest.pulls-work guest.seccomp-no-vsock
+  guest.sends-result guest.supervisor-pid1 guest.task-uid jail.cgroup-after-staging jail.cgroup-leaf jail.cgroup-member-checked
+  jail.chroot-path jail.drives-linked jail.drop-to-vm-user jail.exec-firecracker jail.jailer-chroot jail.joins-cgroup
+  jail.memory-max jail.mode-0700 jail.new-pid-ns jail.no-capabilities jail.owned-by-vm-user jail.pids-max
+  jail.uid-never-shared jail.uid-per-vm network.anti-spoof network.byte-count network.connection-limit network.egress-allowlist
+  network.fence-drops-denied network.no-guest-to-guest network.no-host network.no-metadata network.no-rule-trusts-guest network.one-tap
+  network.rule-order network.tap-rate slot.free-slot-per-vm slot.guest-address slot.guest-route-32 slot.index-range
+  slot.lowest-free slot.mac slot.tap-name teardown.brain-orders teardown.cgroup-closed teardown.daemon-kills-and-erases
+  teardown.kept-on-purpose teardown.placement-forgotten teardown.policy-restated teardown.reservation-released teardown.slot-free teardown.usage-once
+  warm.brain-evicts warm.hot-ttl warm.no-new-boot warm.pressure-eviction warm.same-boot-shape warm.same-tenant-same-deployment
+  warm.stays-after-run warm.vm-claims-next-run warm.vm-lifetime">
+<title>Ignitify: life of a MicroVM</title>
+<style>
+  :root {
+    --bg: #0a0c11; --panel: #12161f; --panel-2: #181d29; --line: #2a3142;
+    --text: #eef1f7; --muted: #8d97ad; --dim: #5d667a;
+    --ember: #ff6b2c; --ember-soft: #ffb089; --safe: #3fd6b8; --warn: #f2c04e; --threat: #ff4d5e;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #05060a; overflow: hidden; }
+  body { font-family: var(--sans); color: var(--text); }
+
+  #stage {
+    position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; overflow: hidden;
+    background:
+      radial-gradient(900px 500px at 88% -10%, rgba(255, 107, 44, .12), transparent 60%),
+      radial-gradient(700px 500px at 0% 110%, rgba(63, 214, 184, .07), transparent 60%),
+      var(--bg);
+  }
+  #stage.still * { transition: none !important; }
+  #stage.paused * { animation-play-state: paused !important; }
+
+  /* Timed elements: the script adds .on (visible) and .lit (active) from data-on / data-lit */
+  [data-on] { opacity: 0; transform: translateY(8px); transition: opacity .5s ease, transform .5s var(--ease), border-color .4s ease, box-shadow .4s ease, background .4s ease, color .4s ease; }
+  [data-on].on { opacity: 1; transform: none; }
+
+  .full { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .full.show { display: flex; }
+  .logo { width: 80px; height: 80px; filter: drop-shadow(0 0 28px rgba(255, 107, 44, .55)); }
+  .word { margin-top: 20px; font-size: 68px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
+  .word b { color: var(--ember); font-weight: inherit; }
+  .tagline { margin-top: 20px; font-size: 26px; font-weight: 500; max-width: 900px; line-height: 1.35; }
+  .tagline b { color: var(--ember); font-weight: 600; }
+  .sub { margin-top: 20px; font: 500 15px/1.5 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .pills { display: flex; gap: 10px; margin-top: 30px; }
+  .pill { padding: 10px 16px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); font: 600 14px/1 var(--mono); }
+
+  #frame { position: absolute; inset: 0; display: none; }
+  #frame.show { display: block; }
+  #kicker { position: absolute; left: 40px; top: 30px; font: 600 13px/1 var(--mono); letter-spacing: .18em; color: var(--ember); text-transform: uppercase; }
+  #title { position: absolute; left: 40px; top: 52px; font-size: 32px; font-weight: 700; letter-spacing: -.02em; }
+  .state { position: absolute; right: 40px; top: 46px; height: 40px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); display: flex; align-items: center; gap: 10px; font: 700 13px/1 var(--mono); letter-spacing: .1em; }
+  .state::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+  .state.amber { color: var(--warn); } .state.green { color: var(--safe); } .state.grey { color: var(--muted); } .state.ember { color: var(--ember); }
+
+  #host { position: absolute; left: 40px; top: 108px; width: 1200px; height: 524px; border: 1.5px dashed var(--line); border-radius: 18px; }
+  #host > .tag { left: 18px; top: -7px; background: var(--bg); padding: 0 8px; }
+  .cap { position: absolute; left: 40px; right: 40px; top: 642px; font-size: 17px; color: var(--ember-soft); }
+  .cap b { color: var(--text); font-weight: 600; }
+
+  .abs { position: absolute; }
+  .tag { position: absolute; left: 14px; top: 11px; font: 600 10.5px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .n { position: absolute; border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; }
+  .n b { font-size: 14.5px; }
+  .n span { font: 500 10.5px/1.3 var(--mono); color: var(--muted); }
+  .n.lit { border-color: var(--ember); box-shadow: 0 0 30px rgba(255, 107, 44, .3); }
+  .box { position: absolute; border: 1.5px solid var(--line); border-radius: 14px; background: rgba(18, 22, 31, .75); }
+  .box.jail { border-color: #7fd08c; } .box.jail > .tag { color: #7fd08c; }
+  .box.fc { border-color: #e0b64f; } .box.fc > .tag { color: #e0b64f; }
+  .box.guest { border-color: var(--safe); background: rgba(10, 12, 17, .8); } .box.guest > .tag { color: var(--safe); }
+  .chip { position: absolute; height: 30px; padding: 0 12px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); display: flex; align-items: center; justify-content: center; font: 600 11.5px/1 var(--mono); white-space: nowrap; }
+  .chip.ok { border-color: rgba(63, 214, 184, .55); color: var(--safe); }
+  .chip.bad { border-color: rgba(255, 77, 94, .55); color: var(--threat); }
+  .chip.lit { border-color: var(--ember); color: var(--ember-soft); box-shadow: 0 0 22px rgba(255, 107, 44, .3); }
+  .flow { position: absolute; display: flex; flex-wrap: wrap; gap: 5px; }
+  .flow .chip { position: static; height: 24px; padding: 0 8px; font-size: 10.5px; }
+  .list { position: absolute; display: grid; gap: 5px; }
+  .list div { height: 26px; padding: 0 10px; border-radius: 7px; background: var(--panel-2); border: 1.5px solid var(--line); display: flex; align-items: center; font: 600 11.5px/1 var(--mono); white-space: nowrap; }
+  .txt { position: absolute; font-size: 13px; line-height: 1.45; color: var(--muted); }
+  .txt b { color: var(--text); font-weight: 600; }
+  .mono { font-family: var(--mono); }
+
+  .slot { position: absolute; width: 44px; height: 30px; border: 1.5px solid var(--line); border-radius: 7px; background: var(--panel); display: grid; place-items: center; font: 600 10.5px/1 var(--mono); color: var(--muted); transition: all .4s ease; }
+  .slot.used { background: var(--panel-2); color: var(--dim); border-style: dashed; }
+  .slot.lit { border-color: var(--ember); background: rgba(255, 107, 44, .2); color: #fff; box-shadow: 0 0 22px rgba(255, 107, 44, .45); }
+
+  .wire { position: absolute; height: 2px; background: var(--line); }
+  .wire.v { width: 2px; }
+  .wire i { position: absolute; left: -5px; top: -5px; width: 12px; height: 12px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 14px var(--ember); opacity: 0; }
+  .wire.teal i { background: var(--safe); box-shadow: 0 0 14px var(--safe); }
+  .wire.lit i { animation: go var(--t, 1s) linear infinite; }
+  .wire.v.lit i { animation-name: goV; }
+  .wire.back.lit i { animation-direction: reverse; }
+  @keyframes go { 0% { opacity: 0; transform: translateX(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(var(--len)); } }
+  @keyframes goV { 0% { opacity: 0; transform: translateY(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(var(--len)); } }
+
+  .row { position: absolute; left: 890px; width: 296px; height: 44px; border: 1.5px solid var(--line); border-radius: 11px; background: var(--panel); display: flex; align-items: center; gap: 12px; padding: 0 14px; font-size: 14px; }
+  .row i { width: 22px; height: 22px; border-radius: 50%; background: rgba(63, 214, 184, .14); border: 1.5px solid rgba(63, 214, 184, .55); color: var(--safe); display: grid; place-items: center; font: 700 12px/1 var(--mono); font-style: normal; flex: none; }
+
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 50px; display: flex; align-items: center; gap: 14px; padding: 0 22px 0 30px; z-index: 10; }
+  #bar button { all: unset; cursor: pointer; }
+  #play { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: var(--text); }
+  #play:hover { background: rgba(255, 255, 255, .08); }
+  #bar button:focus-visible { outline: 2px solid var(--ember); border-radius: 6px; }
+  #play svg { width: 16px; height: 16px; fill: currentColor; }
+  #dots { display: flex; gap: 8px; flex: 1; }
+  #dots button { flex: var(--w, 1); padding-top: 6px; }
+  #dots span { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+  #dots span i { display: block; height: 100%; width: 0; background: var(--ember); }
+  #dots em { display: block; margin-top: 6px; font: 600 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; font-style: normal; color: var(--dim); }
+  #dots button.cur em { color: var(--text); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <section class="full" data-ch="0">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g)"/>
+    </svg>
+    <div class="word" data-on="0,.4">The life of one <b>MicroVM</b></div>
+    <div class="tagline" data-on="0,1.2">Slot, user, jail, boot, network, teardown.</div>
+    <div class="sub" data-on="0,2.2">Ignitify · on one fleet host</div>
+  </section>
+
+  
+  <div id="frame">
+    <div id="kicker"></div>
+    <div id="title"></div>
+
+    <div class="state amber" data-on="1,1.5-2,10">spawning</div>
+    <div class="state amber" data-on="2,10-3,.5">jailed</div>
+    <div class="state amber" data-on="3,.5-4,.8">booting</div>
+    <div class="state green" data-on="4,.8-5,1.2">running</div>
+    <div class="state grey" data-on="5,1.2-5,5">idle · warm</div>
+    <div class="state green" data-on="5,5-5,8">running · run 2</div>
+    <div class="state grey" data-on="5,8-6,.8">idle · warm</div>
+    <div class="state ember" data-on="6,.8-6,9">teardown</div>
+    <div class="state grey" data-on="6,9">gone</div>
+
+    <div id="host" data-on="1,.2">
+      <div class="tag">fleet host</div>
+
+      
+      <div class="chip" style="left:16px; top:14px; width:200px" data-on="1,1.5-2,0" data-lit="1,1.5-2,0">spawn order ← host agent</div>
+      <div class="wire v" style="left:115px; top:44px; height:22px; --len:22px; --t:.7s" data-on="1,1.5-2,0" data-lit="1,1.5-2,0"><i></i></div>
+      <div class="n" style="left:16px; top:66px; width:200px; height:60px" data-on="1,.4" data-lit="1,1.8-1,3.4;3,.5-3,6.6;6,.8-6,5.6"><b>Host daemon</b><span>privileged · local sockets only</span></div>
+
+      <div class="tag" style="left:16px; top:142px" data-on="1,.8">network slots</div>
+      <div data-on="1,.8">
+        <div class="slot used" style="left:16px; top:160px">001</div><div class="slot used" style="left:68px; top:160px">002</div>
+        <div class="slot used" style="left:120px; top:160px">003</div><div class="slot used" style="left:172px; top:160px">004</div>
+        <div class="slot" style="left:16px; top:198px" data-on="1,.8" data-lit="1,3.5-6,8.4">005</div><div class="slot" style="left:68px; top:198px">006</div>
+        <div class="slot" style="left:120px; top:198px">007</div><div class="slot" style="left:172px; top:198px">008</div>
+      </div>
+      <div class="chip" style="left:16px; top:246px; width:200px" data-on="1,5-6,7.4">tap-vm-005</div>
+      <div class="chip" style="left:16px; top:282px; width:200px" data-on="1,5.8-6,7.4">guest address · /32 route</div>
+      <div class="chip" style="left:16px; top:318px; width:200px" data-on="1,6.6-6,7.4">MAC</div>
+      <div class="chip" style="left:16px; top:354px; width:200px" data-on="1,7.6-6,7.4" data-lit="1,7.6-2,2">user id = base + 5</div>
+      <div class="n" style="left:16px; top:402px; width:200px; height:64px" data-on="2,4.8-6,6.6" data-lit="2,4.8-2,6;4,11.5-5,0"><b>cgroup leaf</b><span>memory.max · pids.max</span></div>
+      <div class="wire" style="left:216px; top:95px; width:44px; --len:44px; --t:.7s" data-on="2,2-6,5.6" data-lit="2,3-2,5;3,.5-3,6.6;6,.8-6,5.6"><i></i></div>
+
+      
+      <div class="box jail" style="left:260px; top:20px; width:600px; height:484px" data-on="2,.6-6,5.6">
+        <div class="tag">jail · /srv/jailer/firecracker/&lt;vm-id&gt;/root · owned by that user · mode 0700</div>
+
+        <div class="n" style="left:14px; top:36px; width:132px; height:50px" data-on="2,3.2-6,3.8"><b>rootfs.ext4</b><span>read-only · shared</span></div>
+        <div class="n" style="left:156px; top:36px; width:132px; height:50px" data-on="2,3.6-6,4.1"><b>code.ext4</b><span>read-only</span></div>
+        <div class="n" style="left:298px; top:36px; width:132px; height:50px" data-on="2,4-6,4.4"><b>packages</b><span>read-only · optional</span></div>
+        <div class="n" style="left:440px; top:36px; width:146px; height:50px" data-on="2,4.4-6,4.7"><b>scratch.ext4</b><span>writable · private</span></div>
+
+        <div class="box fc" style="left:14px; top:100px; width:572px; height:370px" data-on="2,6-6,3">
+          <div class="tag">firecracker · own PID namespace</div>
+          <div class="chip ok" style="right:14px; top:30px" data-on="2,10">capabilities: none ✓</div>
+          <div class="chip ok" style="right:196px; top:30px" data-on="2,10.8">cgroup member ✓</div>
+
+          
+          <div class="list" style="left:14px; top:108px; width:300px" data-on="2,6.5-3,6.4">
+            <div data-on="2,6.6">· move into the cgroup leaf</div>
+            <div data-on="2,7.2">· chroot into the jail</div>
+            <div data-on="2,7.8">· new PID namespace</div>
+            <div data-on="2,8.4">· drop to the per-VM user</div>
+            <div data-on="2,9">· exec Firecracker</div>
+          </div>
+
+          <div class="chip" style="left:14px; top:30px; width:106px" data-on="3,.5" data-lit="3,.5-3,6.6">api.socket</div>
+          <div class="flow" style="left:14px; top:68px; width:544px" data-on="3,1">
+            <div class="chip" data-on="3,1">machine-config</div>
+            <div class="chip" data-on="3,2">boot-source</div>
+            <div class="chip" data-on="3,3">drives</div>
+            <div class="chip" data-on="3,4">network</div>
+            <div class="chip" data-on="3,5">vsock</div>
+            <div class="chip" data-on="3,6" data-lit="3,6-3,8">InstanceStart</div>
+          </div>
+
+          <div class="box guest" style="left:14px; top:104px; width:544px; height:252px" data-on="3,6.6-6,1.6">
+            <div class="tag">guest · its own kernel (KVM)</div>
+            <div class="n" style="left:14px; top:36px; width:252px; height:58px" data-on="3,9" data-lit="3,9-4,.8"><b>supervisor</b><span>started by PID 1 · dials vsock · pulls work</span></div>
+            <div class="n" style="left:278px; top:36px; width:252px; height:58px" data-on="4,.8" data-lit="4,.8-5,1;5,5-5,8"><b>tenant code · uid 10001</b><span>no_new_privs · seccomp: no vsock</span></div>
+            <div class="chip" style="left:278px; top:100px" data-on="5,1-5,5">idle</div>
+            <div class="chip" style="left:278px; top:100px" data-on="5,8-6,1.6">idle</div>
+            <div class="n" style="left:14px; top:136px; width:516px; height:34px; border-style:dashed" data-on="3,7.4"><span style="font-size:11px; color:var(--ember-soft)">init=/opt/ignitify/init.sh · ipv6.disable=1 · panic=1 · guest ip + gateway</span></div>
+            <div class="chip" style="left:14px; top:184px; width:120px" data-on="3,8.2" data-lit="3,10-3,13;4,2-4,3.4;5,.5-5,1.2;5,5-5,6">vsock</div>
+            <div class="chip" style="left:212px; top:184px; width:120px" data-on="3,8.2">vCPU · RAM</div>
+            <div class="chip" style="left:410px; top:184px; width:120px" data-on="3,8.2" data-lit="4,3.5-4,7">eth0</div>
+            <div class="txt mono" style="left:14px; top:222px; font-size:10.5px" data-on="3,8.2">hardware is sealed at InstanceStart · network: none attaches no eth0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="txt" style="left:300px; top:230px; width:520px; text-align:center; font-size:16px" data-on="6,6.2"><b>Kept on purpose:</b> the guest serial log and the image cache.</div>
+
+      
+      <div class="wire" style="left:860px; top:62px; width:30px; --len:30px; --t:.7s" data-on="3,10-6,2" data-lit="3,10-3,13;4,2-4,3.4;5,.5-5,1.2;5,5-5,6"><i></i></div>
+      <div class="box" style="left:890px; top:10px; width:296px; height:122px" data-on="3,10-6,2">
+        <div class="tag">control plane · not on the network</div>
+        <div class="txt mono" style="left:14px; top:32px; font-size:11px">guest → daemon; work → agent → brain</div>
+        <div class="flow" style="left:14px; top:58px; width:270px">
+          <div class="chip" data-on="3,10.4">hello</div>
+          <div class="chip" data-on="3,11.2" data-lit="5,5-5,6">getPayload</div>
+          <div class="chip" data-on="4,2">heartbeat</div>
+          <div class="chip" data-on="4,2.6">postChunk</div>
+          <div class="chip" data-on="5,.6" data-lit="5,.6-5,1.6">postResult</div>
+        </div>
+      </div>
+
+      <div class="wire teal" style="left:860px; top:172px; width:30px; --len:30px; --t:.7s" data-on="4,3.5-6,2" data-lit="4,7-5,1;5,5-5,8"><i></i></div>
+      <div class="n" style="left:890px; top:146px; width:140px; height:52px" data-on="4,3.5-6,2"><b>tap-vm-005</b><span>/32 · rate limits</span></div>
+      <div class="wire teal" style="left:1030px; top:172px; width:20px; --len:20px; --t:.6s" data-on="4,7-6,2" data-lit="4,7-5,1;5,5-5,8"><i></i></div>
+      <div class="n" style="left:1050px; top:146px; width:136px; height:52px; border-color:rgba(63,214,184,.55)" data-on="4,7-6,2"><b>Internet</b><span>egress_allow · via proxy</span></div>
+
+      <div class="box" style="left:890px; top:212px; width:296px; height:156px" data-on="4,4.5-6,2">
+        <div class="tag">forwarded · kernel rules on the host</div>
+        <div class="list" style="left:14px; top:32px; width:268px">
+          <div data-on="4,4.6">1 · anti-spoof · connection limit</div>
+          <div data-on="4,5.2">2 · count the bytes</div>
+          <div data-on="4,5.8">3 · fence: drop what is denied</div>
+          <div data-on="4,6.4">4 · allowlist gate (web → egress proxy), NAT</div>
+        </div>
+      </div>
+      <div class="chip bad" style="left:890px; top:380px; width:143px" data-on="4,8.5-5,0">✕ other guests</div>
+      <div class="chip bad" style="left:1043px; top:380px; width:143px" data-on="4,9.3-5,0">✕ host services</div>
+      <div class="chip bad" style="left:890px; top:416px; width:296px" data-on="4,10.1-5,0">✕ metadata 169.254.169.254</div>
+      <div class="txt" style="left:890px; top:456px; width:296px" data-on="4,11.5-5,0">The cgroup caps memory and processes. The tap caps the rate.</div>
+
+      <div class="box" style="left:890px; top:380px; width:296px; height:146px" data-on="5,2-6,1">
+        <div class="tag">warm rules</div>
+        <div class="txt" style="left:14px; top:30px; width:270px"><b>Reuse:</b> same tenant, same deployment, same boot shape. No new boot.</div>
+        <div class="txt" style="left:14px; top:76px; width:270px"><b>Evict:</b> idle for 30 s, past its lifetime (1 h by default), or the fleet is short of free slots.</div>
+      </div>
+
+      <div class="row" style="top:150px" data-on="6,3.2"><i>✓</i>Placement forgotten</div>
+      <div class="row" style="top:204px" data-on="6,4.4"><i>✓</i>Reservation released, once the kill is confirmed</div>
+      <div class="row" style="top:258px" data-on="6,5.6"><i>✓</i>Usage recorded, once</div>
+      <div class="row" style="top:312px" data-on="6,6.8"><i>✓</i>Host network policy restated</div>
+      <div class="row" style="top:366px; border-color:var(--ember)" data-on="6,8.4"><i>✓</i>Slot 005, its tap and its user id are free</div>
+    </div>
+
+    
+    <div class="cap" data-on="1,.5-1,3.5">A spawn order comes from the brain, through the host agent, on a local socket.</div>
+    <div class="cap" data-on="1,3.5-1,7.6"><b>The daemon picks a free network slot.</b> The slot gives the tap device, the address and the MAC.</div>
+    <div class="cap" data-on="1,7.6-2,.6"><b>The slot also gives the user id.</b> Two live VMs never have the same one.</div>
+        <div class="cap" data-on="2,.6-2,4.8"><b>The jail is a private root directory.</b> Only this VM's user can open it. The drives are linked into it.</div>
+    <div class="cap" data-on="2,4.8-2,6">Then the daemon makes a cgroup leaf with a memory limit and a process limit.</div>
+    <div class="cap" data-on="2,6-2,10"><b>The jailer</b> locks itself into the jail, drops its privileges, and then becomes Firecracker.</div>
+    <div class="cap" data-on="2,10-3,.5">Before the VM starts, the daemon checks the process: no capabilities, and inside its cgroup.</div>
+    <div class="cap" data-on="3,.5-3,6.6">The daemon configures the VM through a socket inside the jail. <b>InstanceStart is last.</b></div>
+    <div class="cap" data-on="3,6.6-3,10">The guest kernel boots from the kernel arguments. The supervisor is the first process.</div>
+    <div class="cap" data-on="3,10-4,.8">The supervisor calls the host over vsock. The host knows the VM <b>by its socket</b>, not by what it says.</div>
+    <div class="cap" data-on="4,.8-4,3.5"><b>Tenant code runs as a low-privilege user.</b> It cannot open the control channel.</div>
+    <div class="cap" data-on="4,3.5-4,8.5">All guest traffic leaves through one tap. Kernel rules on the host decide what passes.</div>
+    <div class="cap" data-on="4,8.5-5,.5"><b>No rule trusts the guest.</b> Other guests, host services and cloud metadata are out of reach.</div>
+    <div class="cap" data-on="5,.5-5,5">The result goes back over vsock. <b>A reusable VM stays warm</b> for the next run of the same deployment.</div>
+    <div class="cap" data-on="5,5-5,8">A warm VM asks for work and claims the next run itself. <b>No boot.</b></div>
+    <div class="cap" data-on="5,8-6,.8">Idle again. After 30 seconds with no work, the brain evicts it.</div>
+    <div class="cap" data-on="6,.8-6,5.6"><b>The brain orders the teardown. The daemon does it:</b> kill the VM, erase the jail, its drive links and the scratch disk.</div>
+    <div class="cap" data-on="6,5.6-6,8.4">The cgroup leaf is closed. The brain releases the reserved capacity and records the usage.</div>
+    <div class="cap" data-on="6,8.4">The slot goes back to the pool. <b>The next VM starts clean.</b></div>
+  </div>
+
+  <section class="full" data-ch="7">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g)"/></svg>
+    <div class="tagline" style="font-size:34px" data-on="7,.4">Each VM gets its own of everything.<br><b>Then all of it goes back.</b></div>
+    <div class="pills">
+      <div class="pill" data-on="7,1.6">kernel</div>
+      <div class="pill" data-on="7,1.9">user id</div>
+      <div class="pill" data-on="7,2.2">jail</div>
+      <div class="pill" data-on="7,2.5">cgroup</div>
+      <div class="pill" data-on="7,2.8">network slot</div>
+      <div class="pill" data-on="7,3.1">scratch disk</div>
+    </div>
+    <div class="sub" data-on="7,4">Ignitify · Firecracker MicroVMs</div>
+  </section>
+
+  <div id="bar">
+    <button id="play" aria-label="Pause"></button>
+    <div id="dots"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const CHAPTERS = [
+    { label: 'Intro', dur: 5 },
+    { label: 'Slot', dur: 11, kicker: 'Stage 1 of 6', title: 'A slot and an identity' },
+    { label: 'Jail', dur: 13, kicker: 'Stage 2 of 6', title: 'The jail and the jailer' },
+    { label: 'Boot', dur: 13.5, kicker: 'Stage 3 of 6', title: 'Boot' },
+    { label: 'Run', dur: 14, kicker: 'Stage 4 of 6', title: 'Run: the user and the network' },
+    { label: 'Warm', dur: 12.5, kicker: 'Stage 5 of 6', title: 'Result, then warm reuse' },
+    { label: 'Teardown', dur: 12.5, kicker: 'Stage 6 of 6', title: 'Teardown' },
+    { label: 'End', dur: 7 },
+  ];
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const kicker = document.getElementById('kicker');
+  const title = document.getElementById('title');
+  const dots = document.getElementById('dots');
+  const playBtn = document.getElementById('play');
+  const fulls = [...stage.querySelectorAll('.full')];
+  const ICON = {
+    pause: '<svg viewBox="0 0 16 16"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>',
+    play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11a.5.5 0 0 0 .77.42l8.5-5.5a.5.5 0 0 0 0-.84l-8.5-5.5A.5.5 0 0 0 4 2.5z"/></svg>',
+    replay: '<svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 1-4.6 3H1.3A7 7 0 1 0 8 1V0L4.5 2 8 4z"/></svg>',
+  };
+
+  // A moment is "chapter,seconds". An attribute holds intervals: "2,6-6,3;7,1" (an open end = for ever).
+  const CHAPTER_SPAN = 1000;
+  const moment = s => { const [c, t] = s.split(',').map(Number); return c * CHAPTER_SPAN + t; };
+  const intervals = s => s.split(';').map(part => { const [a, b] = part.split('-'); return [moment(a), b ? moment(b) : Infinity]; });
+  const within = (list, m) => list.some(([a, b]) => m >= a && m < b);
+  const timed = [...stage.querySelectorAll('[data-on]')].map(el => ({
+    el, on: intervals(el.dataset.on), lit: el.dataset.lit ? intervals(el.dataset.lit) : null,
+  }));
+
+  const fills = CHAPTERS.map((c, n) => {
+    const b = document.createElement('button');
+    b.style.setProperty('--w', c.dur);
+    b.setAttribute('aria-label', 'Go to: ' + c.label);
+    b.innerHTML = '<span><i></i></span><em>' + c.label + '</em>';
+    b.addEventListener('click', () => { show(n); setPlaying(true); });
+    dots.appendChild(b);
+    return { b, i: b.querySelector('i') };
+  });
+
+  let index = 0, elapsed = 0, playing = true, ended = false, last = performance.now();
+
+  function render() {
+    const c = CHAPTERS[index], m = index * CHAPTER_SPAN + elapsed / 1000;
+    for (const { el, on, lit } of timed) {
+      el.classList.toggle('on', within(on, m));
+      if (lit) el.classList.toggle('lit', within(lit, m));
+    }
+    fills.forEach((f, n) => {
+      f.i.style.width = n < index ? '100%' : n > index ? '0' : Math.min(100, elapsed / (c.dur * 1000) * 100) + '%';
+      f.b.classList.toggle('cur', n === index);
+    });
+    const state = ended ? 'replay' : playing ? 'pause' : 'play';
+    if (playBtn.dataset.state !== state) {
+      playBtn.dataset.state = state;
+      playBtn.innerHTML = ICON[state];
+      playBtn.setAttribute('aria-label', state[0].toUpperCase() + state.slice(1));
+    }
+  }
+
+  function show(n, atSec = 0) {
+    index = Math.max(0, Math.min(CHAPTERS.length - 1, n));
+    const c = CHAPTERS[index];
+    elapsed = atSec * 1000; ended = false;
+    fulls.forEach(f => f.classList.toggle('show', Number(f.dataset.ch) === index));
+    frame.classList.toggle('show', Boolean(c.title));
+    if (c.title) { kicker.textContent = c.kicker; title.textContent = c.title; }
+    render();
+  }
+
+  function setPlaying(p) { playing = p; stage.classList.toggle('paused', !p); render(); }
+  function toggle() {
+    if (ended) { show(0); setPlaying(true); return; }
+    setPlaying(!playing);
+  }
+
+  function tick(now) {
+    const dt = Math.min(100, now - last); last = now;
+    if (playing && !ended) {
+      elapsed += dt;
+      if (elapsed >= CHAPTERS[index].dur * 1000) {
+        if (index < CHAPTERS.length - 1) show(index + 1);
+        else { elapsed = CHAPTERS[index].dur * 1000; ended = true; }
+      }
+      render();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+
+  playBtn.addEventListener('click', toggle);
+  addEventListener('resize', fit);
+  addEventListener('keydown', e => {
+    if (e.key === ' ') { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
+    else if (e.key === 'ArrowLeft') { show(index - 1); setPlaying(true); }
+    else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
+  });
+
+  fit();
+  // "#4" opens at chapter 4. "#4,12" opens chapter 4 at second 12, paused (a still frame).
+  const [ch, sec] = location.hash.slice(1).split(',').map(Number);
+  if (ch && sec >= 0) { stage.classList.add('still'); show(ch - 1, sec); setPlaying(false); }
+  else show((ch || 1) - 1);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

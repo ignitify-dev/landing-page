@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="facts" content="platform.two-brains platform.no-leader platform.postgres-shared platform.brain-agent-mtls platform.firecracker
+  brains.tenant-per-request brains.agent-via-lb brains.health-check brains.guarded-write brains.run-claim brains.job-claim brains.settle-any
+  brains.warm-pool-shared brains.no-owner-column brains.vms-outlive brains.shutdown-writes-no-run brains.job-reclaim brains.boot-requeue
+  brains.boot-leaves-running run.states run.admit-quota-locked run.no-overbooking control.relay-path warm.stays-after-run">
+<title>Ignitify: two brains in brief</title>
+<style>
+  :root {
+    --bg: #0a0c11; --panel: #12161f; --line: #2a3142;
+    --text: #eef1f7; --muted: #8d97ad; --dim: #5d667a;
+    --ember: #ff6b2c; --ember-soft: #ffb089; --safe: #3fd6b8; --warn: #f2c04e; --threat: #ff4d5e;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #05060a; overflow: hidden; }
+  body { font-family: var(--sans); color: var(--text); }
+
+  #stage {
+    position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; overflow: hidden;
+    background:
+      radial-gradient(900px 500px at 88% -10%, rgba(255, 107, 44, .12), transparent 60%),
+      radial-gradient(700px 500px at 0% 110%, rgba(63, 214, 184, .07), transparent 60%),
+      var(--bg);
+  }
+  #stage.still * { transition: none !important; }
+  #stage.paused * { animation-play-state: paused !important; }
+
+  /* Timed elements: the script adds .on (visible) and .lit (active) from data-on / data-lit */
+  [data-on] { opacity: 0; transform: translateY(10px) scale(.98); transition: opacity .6s ease, transform .6s var(--ease), border-color .4s ease, box-shadow .4s ease; }
+  [data-on].on { opacity: 1; transform: none; }
+
+  .full { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .full.show { display: flex; }
+  .logo { width: 80px; height: 80px; filter: drop-shadow(0 0 28px rgba(255, 107, 44, .55)); }
+  .word { margin-top: 20px; font-size: 68px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
+  .word b { color: var(--ember); font-weight: inherit; }
+  .tagline { margin-top: 20px; font-size: 30px; font-weight: 500; line-height: 1.35; }
+  .tagline b { color: var(--ember); font-weight: 600; }
+  .sub { margin-top: 22px; font: 500 15px/1.5 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+  #frame { position: absolute; inset: 0; display: none; }
+  #frame.show { display: block; }
+  #kicker { position: absolute; left: 40px; top: 30px; font: 600 13px/1 var(--mono); letter-spacing: .18em; color: var(--ember); text-transform: uppercase; }
+  #title { position: absolute; left: 40px; top: 52px; font-size: 36px; font-weight: 700; letter-spacing: -.02em; }
+  .state { position: absolute; right: 40px; top: 46px; height: 40px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); display: flex; align-items: center; gap: 10px; font: 700 13px/1 var(--mono); letter-spacing: .1em; }
+  .state::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+  .state.amber { color: var(--warn); } .state.green { color: var(--safe); } .state.grey { color: var(--muted); }
+
+  .cap { position: absolute; left: 40px; right: 40px; top: 628px; font-size: 21px; color: var(--ember-soft); }
+  .cap b { color: var(--text); font-weight: 600; }
+
+  .tag { position: absolute; left: 18px; top: 14px; font: 600 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .n { position: absolute; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; }
+  .n b { font-size: 19px; }
+  .n span { font-size: 14px; color: var(--muted); }
+  .n.lit { border-color: var(--ember); box-shadow: 0 0 34px rgba(255, 107, 44, .32); }
+  .n.ok { border-color: rgba(63, 214, 184, .6); }
+  .n.ok b { color: var(--safe); font-size: 16px; }
+  .n.bad { border-color: rgba(255, 77, 94, .55); }
+  .n.bad b { color: var(--threat); font-size: 16px; }
+  .n.lim { border-color: rgba(242, 192, 78, .55); }
+  .n.lim b { color: var(--warn); font-size: 16px; }
+  .n.chip { border-radius: 999px; border-color: rgba(63, 214, 184, .6); }
+  .n.chip b { font: 600 15px/1 var(--mono); color: var(--safe); }
+
+  /* A machine: a dashed region that holds the boxes that run on it */
+  .zone { position: absolute; border: 1.5px dashed var(--line); border-radius: 18px; }
+  .zone > .tag { left: 18px; top: -7px; background: var(--bg); padding: 0 8px; color: var(--muted); }
+  .box { position: absolute; border: 2px solid var(--line); border-radius: 18px; background: rgba(18, 22, 31, .7); }
+
+
+
+  .wire { position: absolute; height: 2px; background: var(--line); }
+  .wire i { position: absolute; left: -6px; top: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 16px var(--ember); opacity: 0; }
+  .wire.teal i { background: var(--safe); box-shadow: 0 0 16px var(--safe); }
+  .wire.lit i { animation: go var(--t, .9s) linear infinite; }
+  .wire.up { width: 2px; }
+  .wire.up i { top: auto; bottom: -6px; }
+  .wire.up.lit i { animation-name: rise; }
+  .wire > span { position: absolute; left: 0; right: 0; top: -24px; text-align: center; font: 600 11px/1 var(--mono); letter-spacing: .06em; color: var(--muted); white-space: nowrap; }
+  @keyframes go { 0% { opacity: 0; transform: translateX(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(var(--len)); } }
+  @keyframes rise { 0% { opacity: 0; transform: translateY(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(calc(-1 * var(--len))); } }
+
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 50px; display: flex; align-items: center; gap: 14px; padding: 0 22px 0 30px; z-index: 10; }
+  #bar button { all: unset; cursor: pointer; }
+  #play { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: var(--text); }
+  #play:hover { background: rgba(255, 255, 255, .08); }
+  #bar button:focus-visible { outline: 2px solid var(--ember); border-radius: 6px; }
+  #play svg { width: 16px; height: 16px; fill: currentColor; }
+  #dots { display: flex; gap: 8px; flex: 1; }
+  #dots button { flex: var(--w, 1); padding-top: 6px; }
+  #dots span { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+  #dots span i { display: block; height: 100%; width: 0; background: var(--ember); }
+  #dots em { display: block; margin-top: 6px; font: 600 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; font-style: normal; color: var(--dim); }
+  #dots button.cur em { color: var(--text); }
+
+  /* A brain that is stopped: it covers the live box */
+  .n.down { background: var(--bg); border-color: rgba(255, 77, 94, .55); border-style: dashed; }
+  .n.down b { color: var(--dim); }
+  .n.down span { color: var(--threat); font: 600 13px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+  .n.plain b { font-size: 16px; color: var(--ember-soft); }
+
+  /* The database, and the rows that the brains write */
+  .box.db { border-color: rgba(63, 214, 184, .6); }
+  .box.db > .tag { color: var(--safe); }
+  .box.db.lit { box-shadow: 0 0 34px rgba(63, 214, 184, .25); }
+  .pgnote { position: absolute; left: 20px; right: 20px; top: 180px; text-align: center; font-size: 19px; font-weight: 600; line-height: 1.5; }
+  .pgnote span { display: block; font-size: 14px; font-weight: 400; color: var(--muted); }
+  .row { position: absolute; left: 20px; width: 280px; height: 62px; padding: 11px 14px 0; border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel); white-space: nowrap; }
+  .row em { display: block; font: 600 12px/1 var(--mono); letter-spacing: .04em; font-style: normal; color: var(--muted); }
+  .row b { display: block; margin-top: 10px; font: 600 16px/1 var(--mono); }
+  .row .pend { color: var(--warn); } .row .act { color: var(--ember-soft); } .row .done { color: var(--safe); } .row .sql { color: var(--text); font-size: 12.5px; }
+  .row.lit { border-color: var(--ember); box-shadow: 0 0 24px rgba(255, 107, 44, .28); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <section class="full" data-ch="0">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g-intro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g-intro)"/>
+    </svg>
+    <div class="word" data-on="0,.4">Two <b>brains</b></div>
+    <div class="sub" data-on="0,1.4">Ignitify · two peers, one database, no leader</div>
+  </section>
+
+  <div id="frame">
+    <div id="kicker"></div>
+    <div id="title"></div>
+
+    <div class="state amber" data-on="5,.6-5,5">brain 1 stopped</div>
+    <div class="state amber" data-on="5,5-5,16.5">brain 1 out · 3 failed checks</div>
+    <div class="state green" data-on="5,16.5">brain 1 back · 2 good checks</div>
+
+    
+    <div class="n" style="left:40px; top:165px; width:180px; height:100px" data-on="2,.4" data-lit="2,.5-2,6;5,9-5,12.5"><b>Tenant</b><span>a request</span></div>
+    <div class="zone" style="left:40px; top:400px; width:200px; height:190px" data-on="2,6">
+      <div class="tag">fleet host</div>
+      <div class="n chip" style="left:15px; top:34px; width:170px; height:40px" data-on="4,.4" data-lit="4,.5-4,4.5"><b>VM</b></div>
+      <div class="n" style="left:15px; top:90px; width:170px; height:70px" data-on="2,6" data-lit="2,6-3,0;4,4.5-4,9.5"><b>Host agent</b></div>
+    </div>
+
+    
+    <div class="n" style="left:300px; top:150px; width:200px; height:440px" data-on="1,.4" data-lit="1,.5-1,3.5;2,.5-3,0;4,4.5-4,9.5;5,5-5,12.5"><b>Load balancer</b><span>in front of both brains</span></div>
+    <div class="n lim" style="left:315px; top:440px; width:170px; height:42px" data-on="5,5-6,0"><b>check: every 5 s</b></div>
+    <div class="n bad" style="left:315px; top:490px; width:170px; height:42px" data-on="5,5-6,0"><b>3 failed: out</b></div>
+    <div class="n ok" style="left:315px; top:540px; width:170px; height:42px" data-on="5,16.5-6,0"><b>2 good: back</b></div>
+
+    <div class="n" style="left:600px; top:150px; width:220px; height:130px" data-on="1,.4" data-lit="1,.5-1,6.5;2,.5-2,2;2,3.5-2,5;2,9-3,0;3,.5-3,4;3,7.5-3,11.5;4,.5-4,4.5;5,12.5-5,20"><b>Brain 1</b><span>a peer</span></div>
+    <div class="n" style="left:600px; top:460px; width:220px; height:130px" data-on="1,.4" data-lit="1,.5-1,6.5;2,2-2,3.5;2,5-2,9;3,.5-3,4;4,4.5-4,13;5,9-5,12.5;5,20-6,0"><b>Brain 2</b><span>a peer</span></div>
+    <div class="n down" style="left:600px; top:150px; width:220px; height:130px" data-on="5,.5-5,12.5"><b>Brain 1</b><span>stopped</span></div>
+
+    
+    <div class="n chip" style="left:600px; top:347px; width:220px; height:46px" data-on="1,3.5-2,0"><b>no leader</b></div>
+    <div class="n ok" style="left:600px; top:292px; width:220px; height:46px" data-on="3,8.5-3,11.5"><b>✓ 1 row · wins the run</b></div>
+    <div class="n lim" style="left:600px; top:402px; width:220px; height:46px" data-on="3,8.5-3,11.5"><b>0 rows · changes nothing</b></div>
+    <div class="n plain" style="left:600px; top:292px; width:220px; height:46px" data-on="4,.5-5,0"><b>started the run</b></div>
+    <div class="n ok" style="left:600px; top:402px; width:220px; height:46px" data-on="4,9.5-5,0"><b>✓ settles the run</b></div>
+    <div class="n plain" style="left:600px; top:292px; width:220px; height:46px" data-on="5,12.5-5,16.5"><b>starts again</b></div>
+    <div class="n ok" style="left:600px; top:402px; width:220px; height:46px" data-on="5,9-5,12.5"><b>✓ carries on</b></div>
+
+    
+    <div class="box db" style="left:920px; top:150px; width:320px; height:440px" data-on="1,.4" data-lit="1,6.5-2,0;3,.5-3,4">
+      <div class="tag">PostgreSQL</div>
+      <div class="pgnote" data-on="1,6.5-3,0">The system of record<span>both brains use it</span></div>
+
+      <div class="row" style="top:60px" data-on="3,4-3,8.5" data-lit="3,4-3,7.5"><em>run 019a3f6e…</em><b class="pend">PENDING</b></div>
+      <div class="row" style="top:60px" data-on="3,8.5-4,0" data-lit="3,8.5-3,11.5"><em>run 019a3f6e…</em><b class="act">PROVISIONING</b></div>
+      <div class="row" style="top:134px" data-on="3,7.5-3,11.5"><em>the claim</em><b class="sql">UPDATE … WHERE status = 'PENDING'</b></div>
+      <div class="row" style="top:134px" data-on="3,11.5-4,0" data-lit="3,11.5-3,15"><em>queue job</em><b class="act">claimed by brain 1</b></div>
+      <div class="row" style="top:208px" data-on="3,11.5-4,0" data-lit="3,11.5-3,15"><em>queue job</em><b class="act">claimed by brain 2</b></div>
+      <div class="row" style="top:282px" data-on="3,15-4,0" data-lit="3,15-4,0"><em>tenant quota</em><b class="done">checked under a lock</b></div>
+      <div class="row" style="top:356px" data-on="3,15-4,0" data-lit="3,15-4,0"><em>host capacity</em><b class="done">checked under a lock</b></div>
+
+      <div class="row" style="top:60px" data-on="4,.4-4,9.5"><em>run 019a3f6e…</em><b class="act">RUNNING</b></div>
+      <div class="row" style="top:60px" data-on="4,9.5-5,0" data-lit="4,9.5-4,13"><em>run 019a3f6e…</em><b class="done">COMPLETED</b></div>
+      <div class="row" style="top:134px" data-on="4,13-5,0" data-lit="4,13-5,0"><em>the VM · idle pool</em><b class="done">idle_since is set</b></div>
+
+      <div class="row" style="top:60px" data-on="5,.5-5,9"><em>run 019a41b2…</em><b class="act">RUNNING</b></div>
+      <div class="row" style="top:60px" data-on="5,9-6,0" data-lit="5,9-5,12.5"><em>run 019a41b2…</em><b class="done">COMPLETED</b></div>
+      <div class="row" style="top:134px" data-on="5,.5-5,12.5"><em>run 019a41c7…</em><b class="act">PROVISIONING</b></div>
+      <div class="row" style="top:134px" data-on="5,12.5-6,0" data-lit="5,12.5-5,20"><em>run 019a41c7…</em><b class="pend">PENDING</b></div>
+      <div class="row" style="top:208px" data-on="5,.5-5,20"><em>queue job</em><b class="act">claimed by brain 1</b></div>
+      <div class="row" style="top:208px" data-on="5,20-6,0" data-lit="5,20-6,0"><em>queue job · after 120 s</em><b class="pend">back in the queue</b></div>
+    </div>
+
+    
+    <div class="wire" style="left:220px; top:214px; width:80px; --len:80px" data-on="2,.4" data-lit="2,.5-2,6;5,9-5,12.5"><i></i></div>
+    <div class="wire" style="left:225px; top:524px; width:75px; --len:75px" data-on="2,6" data-lit="2,6-3,0;4,4.5-4,9.5;5,9-5,12.5"><i></i><span>mTLS</span></div>
+    <div class="wire" style="left:500px; top:214px; width:100px; --len:100px" data-on="1,.4-5,5;5,16.5" data-lit="2,.5-2,2;2,3.5-2,5;2,9-3,0"><i></i></div>
+    <div class="wire" style="left:500px; top:524px; width:100px; --len:100px" data-on="1,.4" data-lit="2,2-2,3.5;2,5-2,9;4,4.5-4,9.5;5,9-5,12.5"><i></i></div>
+    <div class="n bad" style="left:505px; top:192px; width:90px; height:46px" data-on="5,5-5,16.5"><b>✕ out</b></div>
+    <div class="wire teal" style="left:820px; top:214px; width:100px; --len:100px" data-on="1,6.5-5,.5;5,12.5" data-lit="1,6.5-2,0;3,.5-3,11.5;5,12.5-5,16.5"><i></i></div>
+    <div class="wire teal" style="left:820px; top:524px; width:100px; --len:100px" data-on="1,6.5" data-lit="1,6.5-2,0;3,.5-3,7.5;4,9.5-4,13;5,9-5,12.5"><i></i></div>
+
+    
+    <div class="cap" data-on="1,.5-1,3.5"><b>Two brains</b> run behind one load balancer.</div>
+    <div class="cap" data-on="1,3.5-1,6.5">The two brains are peers. <b>There is no leader.</b></div>
+    <div class="cap" data-on="1,6.5-2,0">Both brains use <b>one PostgreSQL database</b>. It is the system of record.</div>
+
+    <div class="cap" data-on="2,.5-2,6">The load balancer sends tenant requests to the two brains <b>in turn</b>, request by request.</div>
+    <div class="cap" data-on="2,6-3,0">The host agent calls the load balancer too, over mTLS. <b>Any brain may answer.</b></div>
+
+    <div class="cap" data-on="3,.5-3,4"><b>Both brains run every background loop.</b> A guarded write to the database makes that safe.</div>
+    <div class="cap" data-on="3,4-3,7.5">Both brains can list the same PENDING run.</div>
+    <div class="cap" data-on="3,7.5-3,11.5">The claim is an update that needs the status PENDING. <b>One brain wins the run.</b> The other changes nothing.</div>
+    <div class="cap" data-on="3,11.5-3,15">A brain claims queue jobs with <b>SKIP LOCKED</b>. Two brains get different jobs.</div>
+    <div class="cap" data-on="3,15-4,0">The quota of a tenant and the capacity of a host are checked <b>under a lock</b>.</div>
+
+    <div class="cap" data-on="4,.5-4,4.5">Brain 1 started this run. Its VM is on a fleet host.</div>
+    <div class="cap" data-on="4,4.5-4,9.5">The result goes from the guest to the host agent, then to the load balancer. <b>This time, brain 2 answers.</b></div>
+    <div class="cap" data-on="4,9.5-4,13"><b>Brain 2 settles the run.</b> The write needs the status RUNNING, so the first end result wins.</div>
+    <div class="cap" data-on="4,13-5,0">A VM that can be reused goes to the idle pool, <b>in the database</b>. No row names the brain that started a VM.</div>
+
+    <div class="cap" data-on="5,.5-5,5"><b>Brain 1 shuts down.</b> It writes nothing to the runs. The VMs are on the fleet hosts, and they outlive every brain.</div>
+    <div class="cap" data-on="5,5-5,9">The load balancer checks each brain every 5 seconds. <b>Three failed checks</b> take brain 1 out.</div>
+    <div class="cap" data-on="5,9-5,12.5"><b>Brain 2 carries on.</b> Any brain settles a run.</div>
+    <div class="cap" data-on="5,12.5-5,16.5"><b>Brain 1 starts again.</b> It puts each PROVISIONING run back to PENDING. It does not touch a RUNNING run.</div>
+    <div class="cap" data-on="5,16.5-5,20"><b>Two good checks</b> bring brain 1 back. The default limit is 3: the third brain crash makes a run FAILED.</div>
+    <div class="cap" data-on="5,20-6,0">A job that stays claimed for more than <b>120 seconds</b> (the default) goes back to the queue.</div>
+  </div>
+
+  <section class="full" data-ch="6">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g-close" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g-close)"/>
+    </svg>
+    <div class="tagline" style="font-size:36px" data-on="6,.4">Two brains. One database.<br><b>No leader. One winner for each run.</b></div>
+    <div class="sub" data-on="6,2">Ignitify · Firecracker MicroVMs</div>
+  </section>
+
+  <div id="bar">
+    <button id="play" aria-label="Pause"></button>
+    <div id="dots"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const CHAPTERS = [
+    { label: 'Intro', dur: 4 },
+    { label: 'Peers', dur: 10, kicker: 'Step 1 of 5', title: 'Two peers' },
+    { label: 'Requests', dur: 12, kicker: 'Step 2 of 5', title: 'A request comes in' },
+    { label: 'One winner', dur: 18.5, kicker: 'Step 3 of 5', title: 'One run, one winner' },
+    { label: 'Handover', dur: 16.5, kicker: 'Step 4 of 5', title: 'Started by one, finished by the other' },
+    { label: 'One stops', dur: 24, kicker: 'Step 5 of 5', title: 'One brain stops' },
+    { label: 'Close', dur: 6 },
+  ];
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const kicker = document.getElementById('kicker');
+  const title = document.getElementById('title');
+  const dots = document.getElementById('dots');
+  const playBtn = document.getElementById('play');
+  const fulls = [...stage.querySelectorAll('.full')];
+  const ICON = {
+    pause: '<svg viewBox="0 0 16 16"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>',
+    play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11a.5.5 0 0 0 .77.42l8.5-5.5a.5.5 0 0 0 0-.84l-8.5-5.5A.5.5 0 0 0 4 2.5z"/></svg>',
+    replay: '<svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 1-4.6 3H1.3A7 7 0 1 0 8 1V0L4.5 2 8 4z"/></svg>',
+  };
+
+  // A moment is "chapter,seconds". An attribute holds intervals: "2,4-5,6;6,1" (an open end = for ever).
+  const CHAPTER_SPAN = 1000;
+  const moment = s => { const [c, t] = s.split(',').map(Number); return c * CHAPTER_SPAN + t; };
+  const intervals = s => s.split(';').map(part => { const [a, b] = part.split('-'); return [moment(a), b ? moment(b) : Infinity]; });
+  const within = (list, m) => list.some(([a, b]) => m >= a && m < b);
+  const timed = [...stage.querySelectorAll('[data-on]')].map(el => ({
+    el, on: intervals(el.dataset.on), lit: el.dataset.lit ? intervals(el.dataset.lit) : null,
+  }));
+
+  const fills = CHAPTERS.map((c, n) => {
+    const b = document.createElement('button');
+    b.style.setProperty('--w', c.dur);
+    b.setAttribute('aria-label', 'Go to: ' + c.label);
+    b.innerHTML = '<span><i></i></span><em>' + c.label + '</em>';
+    b.addEventListener('click', () => { show(n); setPlaying(true); });
+    dots.appendChild(b);
+    return { b, i: b.querySelector('i') };
+  });
+
+  let index = 0, elapsed = 0, playing = true, ended = false, last = performance.now();
+
+  function render() {
+    const c = CHAPTERS[index], m = index * CHAPTER_SPAN + elapsed / 1000;
+    for (const { el, on, lit } of timed) {
+      el.classList.toggle('on', within(on, m));
+      if (lit) el.classList.toggle('lit', within(lit, m));
+    }
+    fills.forEach((f, n) => {
+      f.i.style.width = n < index ? '100%' : n > index ? '0' : Math.min(100, elapsed / (c.dur * 1000) * 100) + '%';
+      f.b.classList.toggle('cur', n === index);
+    });
+    const state = ended ? 'replay' : playing ? 'pause' : 'play';
+    if (playBtn.dataset.state !== state) {
+      playBtn.dataset.state = state;
+      playBtn.innerHTML = ICON[state];
+      playBtn.setAttribute('aria-label', state[0].toUpperCase() + state.slice(1));
+    }
+  }
+
+  function show(n, atSec = 0) {
+    index = Math.max(0, Math.min(CHAPTERS.length - 1, n));
+    const c = CHAPTERS[index];
+    elapsed = atSec * 1000; ended = false;
+    fulls.forEach(f => f.classList.toggle('show', Number(f.dataset.ch) === index));
+    frame.classList.toggle('show', Boolean(c.title));
+    if (c.title) { kicker.textContent = c.kicker; title.textContent = c.title; }
+    render();
+  }
+
+  function setPlaying(p) { playing = p; stage.classList.toggle('paused', !p); render(); }
+  function toggle() {
+    if (ended) { show(0); setPlaying(true); return; }
+    setPlaying(!playing);
+  }
+
+  function tick(now) {
+    const dt = Math.min(100, now - last); last = now;
+    if (playing && !ended) {
+      elapsed += dt;
+      if (elapsed >= CHAPTERS[index].dur * 1000) {
+        if (index < CHAPTERS.length - 1) show(index + 1);
+        else { elapsed = CHAPTERS[index].dur * 1000; ended = true; }
+      }
+      render();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+
+  playBtn.addEventListener('click', toggle);
+  addEventListener('resize', fit);
+  addEventListener('keydown', e => {
+    if (e.key === ' ') { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
+    else if (e.key === 'ArrowLeft') { show(index - 1); setPlaying(true); }
+    else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
+  });
+
+  fit();
+  // "#4" opens at chapter 4. "#4,9" opens chapter 4 at second 9, paused (a still frame).
+  const [ch, sec] = location.hash.slice(1).split(',').map(Number);
+  if (ch && sec >= 0) { stage.classList.add('still'); show(ch - 1, sec); setPlaying(false); }
+  else show((ch || 1) - 1);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
