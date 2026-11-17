@@ -31,6 +31,7 @@
   <url><loc>https://ignitify.dev/docs/guides/pass-input-and-read-results</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/run-later</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/stop-and-clean-up</loc></url>
+  <url><loc>https://ignitify.dev/docs/guides/terraform</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/trigger-from-a-webhook</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/troubleshoot</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/use-secrets</loc></url>
@@ -41,6 +42,17 @@
   <url><loc>https://ignitify.dev/docs/reference/refused-values</loc></url>
   <url><loc>https://ignitify.dev/docs/reference/reliability</loc></url>
   <url><loc>https://ignitify.dev/docs/reference/task-yaml</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/api-key</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/deployment</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/group</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/hook</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/provider</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/recipes</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/secret</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/task</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/troubleshooting</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/user</loc></url>
+  <url><loc>https://ignitify.dev/docs/terraform/whoami</loc></url>
   <url><loc>https://ignitify.dev/docs/what-is-ignitify</loc></url>
   <url><loc>https://ignitify.dev/docs/your-first-task</loc></url>
   <url><loc>https://ignitify.dev/dpa</loc></url>
