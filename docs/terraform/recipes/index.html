@@ -38,6 +38,7 @@ resource &quot;ignitify_group&quot; &quot;deployers&quot; {
     &quot;secrets.read&quot;, &quot;secrets.write&quot;,
     &quot;hooks.read&quot;, &quot;hooks.write&quot;,
     &quot;runs.read&quot;,
+    # Add &quot;runs.write&quot; when CI also starts runs (ignitify task:run).
   ]
   members = [ignitify_user.ci.name]
 }
@@ -71,6 +72,7 @@ output &quot;ci_key&quot; {
 <span class="line"><span style="--shiki-light:#A31515;--shiki-dark:#CE9178">    "secrets.read"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">, </span><span style="--shiki-light:#A31515;--shiki-dark:#CE9178">"secrets.write"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
 <span class="line"><span style="--shiki-light:#A31515;--shiki-dark:#CE9178">    "hooks.read"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">, </span><span style="--shiki-light:#A31515;--shiki-dark:#CE9178">"hooks.write"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
 <span class="line"><span style="--shiki-light:#A31515;--shiki-dark:#CE9178">    "runs.read"</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">,</span></span>
+<span class="line"><span style="--shiki-light:#008000;--shiki-dark:#6A9955">    # Add "runs.write" when CI also starts runs (ignitify task:run).</span></span>
 <span class="line"><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">  ]</span></span>
 <span class="line"><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">  members </span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">=</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4"> [</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">ignitify_user</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">.</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">ci</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">.</span><span style="--shiki-light:#001080;--shiki-dark:#9CDCFE">name</span><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">]</span></span>
 <span class="line"><span style="--shiki-light:#000000;--shiki-dark:#D4D4D4">}</span></span>
