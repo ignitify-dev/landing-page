@@ -169,8 +169,8 @@
 
   <section class="full" data-ch="6">
     <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g)"/></svg>
-    <div class="tagline" style="font-size:36px" data-on="6,.4">Three walls. Two channels.<br><b>Then it is gone.</b></div>
-    <div class="sub" data-on="6,2">Ignitify · Firecracker MicroVMs</div>
+    <div class="tagline" style="font-size:36px" data-on="6,0">Three walls. Two channels.<br><b>Then it is gone.</b></div>
+    <div class="sub" data-on="6,0">Ignitify · Firecracker MicroVMs</div>
   </section>
 
   <div id="bar">
@@ -179,6 +179,7 @@
   </div>
 </div>
 
+<script src="player.js"></script>
 <script>
 (() => {
   const CHAPTERS = [
@@ -188,7 +189,7 @@
     { label: 'Boot', dur: 9, kicker: 'Step 3 of 5', title: 'Its own kernel' },
     { label: 'Run', dur: 11, kicker: 'Step 4 of 5', title: 'Fenced in' },
     { label: 'End', dur: 12, kicker: 'Step 5 of 5', title: 'Then everything goes back' },
-    { label: 'Close', dur: 6 },
+    { label: 'Close', dur: 2 },
   ];
   const stage = document.getElementById('stage');
   const frame = document.getElementById('frame');
@@ -271,13 +272,7 @@
     requestAnimationFrame(tick);
   }
 
-  function fit() {
-    const s = Math.min(innerWidth / 1280, innerHeight / 720);
-    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
-  }
-
   playBtn.addEventListener('click', toggle);
-  addEventListener('resize', fit);
   addEventListener('keydown', e => {
     if (e.key === ' ') { e.preventDefault(); toggle(); }
     else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
@@ -285,7 +280,6 @@
     else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
   });
 
-  fit();
   // "#4" opens at chapter 4. "#4,9" opens chapter 4 at second 9, paused (a still frame).
   const [ch, sec] = location.hash.slice(1).split(',').map(Number);
   if (ch && sec >= 0) { stage.classList.add('still'); show(ch - 1, sec); setPlaying(false); }

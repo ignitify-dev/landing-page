@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="facts" content="build.in-microvm build.tenant-steps-isolated build.secrets-need-attested-images control.sealed-secrets network.egress-allowlist run.capability-gate teardown.daemon-kills-and-erases
+  platform.firecracker boot.own-kernel warm.same-tenant-same-deployment jail.jailer-chroot jail.uid-never-shared jail.no-capabilities guest.task-uid guest.no-new-privs
+  network.default-none network.no-guest-to-guest network.no-rule-trusts-guest
+  platform.runtimes cli.task-deploy cli.task-deploy-output cli.task-run">
+<title>Ignitify: run any code in its own machine (phone)</title>
+<style>
+  :root {
+    --bg: #0a0c11; --panel: #12161f; --line: #2a3142;
+    --text: #eef1f7; --muted: #8d97ad; --dim: #5d667a;
+    --ember: #ff6b2c; --ember-soft: #ffb089; --safe: #3fd6b8; --warn: #f2c04e;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #05060a; overflow: hidden; }
+  body { font-family: var(--sans); color: var(--text); }
+  #stage { position: absolute; left: 50%; top: 50%; overflow: hidden;
+    background: radial-gradient(900px 500px at 88% -10%, rgba(255, 107, 44, .12), transparent 60%), radial-gradient(700px 500px at 0% 110%, rgba(63, 214, 184, .07), transparent 60%), var(--bg); }
+  #stage.still * { transition: none !important; }
+  #stage.paused * { animation-play-state: paused !important; }
+  [data-on] { opacity: 0; transform: translateY(14px) scale(.98); transition: opacity .6s ease, transform .6s var(--ease), border-color .4s ease, box-shadow .4s ease; }
+  [data-on].on { opacity: 1; transform: none; }
+  .drop[data-on] { transform: translateY(-120px); }
+  .drop[data-on].on { transform: none; }
+  .full { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 40px; }
+  .full.show { display: flex; }
+  .logo { filter: drop-shadow(0 0 32px rgba(255, 107, 44, .55)); }
+  .word { font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
+  .word b, .tagline b { color: var(--ember); font-weight: inherit; }
+  .tagline { font-weight: 600; line-height: 1.25; }
+  .sub { font-family: var(--mono); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .cta { border: 3px solid var(--ember); border-radius: 18px; font-weight: 700; box-shadow: 0 0 40px rgba(255, 107, 44, .35); }
+  #frame { position: absolute; inset: 0; display: none; }
+  #frame.show { display: block; }
+  #kicker { display: none; }
+  #title { position: absolute; font-weight: 800; letter-spacing: -.025em; line-height: 1.12; }
+  .cap { position: absolute; color: var(--ember-soft); line-height: 1.3; }
+  .cap b { color: var(--text); font-weight: 700; }
+  .n { position: absolute; border: 2.5px solid var(--line); border-radius: 22px; background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .n b { font-weight: 700; }
+  .n em { font-style: normal; font-family: var(--mono); font-weight: 700; }
+  .n .q { color: var(--warn); } .n .a { color: var(--safe); }
+  .n.code b { font-family: var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ember-soft); }
+  .n.ok { border-color: rgba(63, 214, 184, .65); }
+  .n.lit { border-color: var(--ember); box-shadow: 0 0 40px rgba(255, 107, 44, .35); }
+  .n.lit b { color: var(--ember); }
+  .box { position: absolute; border: 2.5px solid var(--line); border-radius: 24px; background: rgba(18, 22, 31, .7); }
+  .wall { position: absolute; border: 3px solid var(--line); border-radius: 28px; }
+  .wall > .tag { position: absolute; left: 24px; padding: 0 10px; background: var(--bg); font-family: var(--mono); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .wall.jail { border-style: dashed; border-color: rgba(242, 192, 78, .7); }
+  .wall.jail > .tag { color: var(--warn); }
+  .wall.vm { border-color: rgba(255, 176, 137, .75); background: rgba(18, 22, 31, .6); }
+  .wall.vm > .tag { color: var(--ember-soft); }
+  .line { position: absolute; height: 4px; border-radius: 2px; background: var(--line); }
+  .line.go { background: var(--safe); box-shadow: 0 0 14px rgba(63, 214, 184, .6); }
+  .stop { position: absolute; width: 7px; border-radius: 4px; background: #ff4d5e; box-shadow: 0 0 14px rgba(255, 77, 94, .7); }
+  .shared { position: absolute; border: 2.5px solid var(--line); border-radius: 16px; background: var(--panel); display: grid; place-items: end center; font-family: var(--mono); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .c1 { border-color: rgba(255, 176, 137, .75); } .c2 { border-color: rgba(63, 214, 184, .75); } .c3 { border-color: rgba(242, 192, 78, .75); } .c4 { border-color: rgba(122, 167, 255, .75); }
+  .crack { position: absolute; overflow: visible; }
+  .crack path { fill: none; stroke: #ff4d5e; stroke-width: 4; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 2.4s ease; filter: drop-shadow(0 0 8px rgba(255, 77, 94, .7)); }
+  .crack.on path { stroke-dashoffset: 0; }
+  .term { position: absolute; font-family: var(--mono); white-space: pre; color: var(--text); }
+  .term em { font-style: normal; color: var(--muted); }
+  .term .hi { color: var(--ember-soft); } .term .ok { color: var(--safe); }
+  .chip { position: absolute; border: 2.5px solid rgba(63, 214, 184, .65); border-radius: 999px; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; color: var(--safe); background: var(--panel); }
+  .ring { position: absolute; overflow: visible; }
+  .ring ellipse { fill: none; stroke: var(--ember); stroke-width: 3; stroke-dasharray: 8 10; opacity: .8; }
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; z-index: 10; }
+  #bar button { all: unset; cursor: pointer; }
+  #play { display: grid; place-items: center; border-radius: 10px; color: var(--text); }
+  #play:hover { background: rgba(255, 255, 255, .08); }
+  #bar button:focus-visible { outline: 2px solid var(--ember); border-radius: 6px; }
+  #play svg { fill: currentColor; }
+  #dots { display: flex; flex: 1; }
+  #dots button { flex: var(--w, 1); }
+  #dots span { display: block; border-radius: 3px; background: rgba(255, 255, 255, .16); overflow: hidden; }
+  #dots span i { display: block; height: 100%; width: 0; background: var(--ember); }
+  #dots em { display: block; font-family: var(--mono); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-style: normal; color: var(--dim); }
+  #dots button.cur em { color: var(--text); }
+
+  #stage { width: 720px; height: 1280px; }
+  #title { left: 44px; right: 44px; top: 70px; font-size: 64px; }
+  .cap { left: 44px; right: 44px; top: 1000px; font-size: 44px; }
+  .n b { font-size: 46px; }
+  .n.code b { font-size: 38px; }
+  .shared { font-size: 30px; padding-bottom: 22px; }
+  .row { position: absolute; left: 60px; width: 600px; height: 108px; border: 2.5px solid var(--line); border-radius: 22px; background: var(--panel);
+    display: flex; align-items: center; gap: 22px; padding: 0 30px; font-size: 44px; font-weight: 700; }
+  .row i { font-style: normal; font-family: var(--sans); font-size: 44px; }
+  .row.ok { border-color: rgba(63, 214, 184, .65); } .row.ok i { color: var(--safe); }
+  .row.q i { color: var(--warn); }
+  .row.bad { border-color: rgba(255, 77, 94, .6); } .row.bad i { color: #ff4d5e; }
+  .row.mono { font-family: var(--mono); font-size: 36px; }
+  .wall > .tag { top: -18px; font-size: 30px; }
+  .term { font-size: 28px; line-height: 1.7; }
+  .chip { font-size: 38px; }
+  .logo { width: 140px; height: 140px; }
+  .word { margin-top: 24px; font-size: 120px; }
+  .tagline { margin-top: 26px; font-size: 64px; }
+  .sub { margin-top: 26px; font-size: 28px; }
+  .cta { margin-top: 56px; padding: 26px 56px; font-size: 46px; }
+  #bar { height: 120px; gap: 22px; padding: 0 32px 18px; }
+  #play { width: 64px; height: 64px; } #play svg { width: 34px; height: 34px; }
+  #dots { gap: 10px; } #dots span { height: 8px; } #dots em { display: none; }
+  #stage #bar #pl-time { font-size: 30px; line-height: 64px; min-width: 110px; }
+  #stage #bar #pl-fs { width: 64px; height: 64px; } #stage #bar #pl-fs svg { width: 30px; height: 30px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="frame">
+    <div id="kicker"></div>
+    <div id="title"></div>
+
+    
+    <div class="n code drop" style="left:80px; top:330px; width:560px; height:170px" data-on="0,.6-1,0"><b>your own job</b></div>
+    <div class="n code drop" style="left:80px; top:530px; width:560px; height:170px" data-on="0,1.4-1,0"><b>AI agent</b></div>
+    <div class="n code drop" style="left:80px; top:730px; width:560px; height:170px" data-on="0,2.2-1,0"><b>customer script</b></div>
+    <div class="cap" data-on="0,3.2-1,0">All of it needs <b>a place to run</b>.</div>
+
+    
+    <div class="n c1" style="left:60px; top:300px; width:290px; height:150px" data-on="1,.3-2,0"><b style="font-size:38px">customer A</b></div>
+    <div class="n c2" style="left:370px; top:300px; width:290px; height:150px" data-on="1,.5-2,0"><b style="font-size:38px">customer B</b></div>
+    <div class="n c3" style="left:60px; top:470px; width:290px; height:150px" data-on="1,.7-2,0"><b style="font-size:38px">customer C</b></div>
+    <div class="n c4" style="left:370px; top:470px; width:290px; height:150px" data-on="1,.9-2,0"><b style="font-size:38px">customer D</b></div>
+    <div class="shared" style="left:40px; top:650px; width:640px; height:170px" data-on="1,.2-2,0">one kernel</div>
+    <svg class="crack" style="left:40px; top:650px" width="640" height="170" viewBox="0 0 640 170" data-on="1,3.4-2,0"><path pathLength="1" d="M300 0 l18 22 -16 18 20 16 60 -10 60 12 70 -12 70 10 M302 56 l-60 12 -70 -10 -70 12 -60 -8"/></svg>
+    <div class="cap" data-on="1,3.4-2,0">Flaws let code <b>escape</b>.</div>
+
+    
+    <div class="row q" style="top:300px" data-on="2,0.3-3,0"><i>?</i>build</div>
+    <div class="row q" style="top:428px" data-on="2,0.7-3,0"><i>?</i>secrets</div>
+    <div class="row q" style="top:556px" data-on="2,1.1-3,0"><i>?</i>network</div>
+    <div class="row q" style="top:684px" data-on="2,1.5-3,0"><i>?</i>limits</div>
+    <div class="row q" style="top:812px" data-on="2,1.9-3,0"><i>?</i>teardown</div>
+    <div class="cap" data-on="2,3.4-3,0">The work <b>around it</b> is not.</div>
+
+    
+    <div class="row ok" style="top:300px" data-on="3,0.1-4,0"><i>&#10003;</i>build</div>
+    <div class="row ok" style="top:428px" data-on="3,0.4-4,0"><i>&#10003;</i>secrets</div>
+    <div class="row ok" style="top:556px" data-on="3,0.7-4,0"><i>&#10003;</i>network</div>
+    <div class="row ok" style="top:684px" data-on="3,1.0-4,0"><i>&#10003;</i>limits</div>
+    <div class="row ok" style="top:812px" data-on="3,1.3-4,0"><i>&#10003;</i>teardown</div>
+    <div class="cap" data-on="3,2.4-4,0">From build <b>to teardown</b>.</div>
+
+    
+    <div class="wall jail" style="left:50px; top:320px; width:620px; height:600px" data-on="4,.5-5,0"><div class="tag">jail</div></div>
+    <div class="wall vm" style="left:110px; top:410px; width:500px; height:450px" data-on="4,1.6-5,0"><div class="tag">own VM &middot; kernel</div></div>
+    <div class="n lit" style="left:170px; top:520px; width:380px; height:230px" data-on="4,2.7-5,0"><b>your code</b></div>
+    <div class="cap" data-on="4,4-5,0">Your code has <b>no privileges</b>.</div>
+
+    
+    <div class="row bad" style="top:360px" data-on="5,.3-6,0"><i>&#10007;</i>network: off</div>
+    <div class="row ok mono" style="top:520px" data-on="5,2.5-6,0"><i>&#10003;</i>api.example.com</div>
+    <div class="row bad" style="top:680px" data-on="5,6-6,0"><i>&#10007;</i>another VM</div>
+    <div class="cap" data-on="5,2.5-6,0">Only the hosts <b>you list</b>.</div>
+
+    
+    <div class="chip" style="left:60px; top:300px; width:290px; height:100px" data-on="6,.3-7,0">Node</div>
+    <div class="chip" style="left:370px; top:300px; width:290px; height:100px" data-on="6,.5-7,0">Python</div>
+    <div class="chip" style="left:60px; top:420px; width:290px; height:100px" data-on="6,.7-7,0">Go</div>
+    <div class="chip" style="left:370px; top:420px; width:290px; height:100px" data-on="6,.9-7,0">Rust</div>
+    <div class="box" style="left:40px; top:600px; width:640px; height:255px" data-on="6,2.4-7,0">
+      <div class="term" style="left:26px; top:26px"><span data-on="6,2.6"><em>$</em> <span class="hi">ignitify task:deploy my-task</span></span>
+<span data-on="6,3.4">Uploading my-task</span>
+<span data-on="6,4.2"><span class="ok">&#10003; Image built</span></span>
+<span data-on="6,4.8">deployment <span class="ok">READY</span></span></div>
+    </div>
+    <div class="cap" data-on="6,2.6-7,0"><b>One command</b> to deploy.</div>
+  </div>
+
+  <section class="full" data-ch="7">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g-close" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g-close)"/>
+    </svg>
+    <div class="word" data-on="7,0">Ignit<b>ify</b></div>
+    <div class="tagline" data-on="7,0">Run any code <b>in its own machine</b>.</div>
+    <div class="sub" data-on="7,0">from build to teardown</div>
+  </section>
+
+  <div id="bar">
+    <button id="play" aria-label="Pause"></button>
+    <div id="dots"></div>
+  </div>
+</div>
+<script src="player.js"></script>
+<script>
+(() => {
+  const CHAPTERS = [
+    { label: 'The code', dur: 7, kicker: '', title: 'Code from everywhere.' },
+    { label: 'The risk', dur: 8, kicker: '', title: 'Containers share one kernel.' },
+    { label: 'The real job', dur: 7, kicker: '', title: 'The box is easy.' },
+    { label: 'The answer', dur: 7, kicker: '', title: 'Ignitify runs all of it.' },
+    { label: 'The walls', dur: 10, kicker: '', title: 'Walled in.' },
+    { label: 'The network', dur: 10, kicker: '', title: 'No network unless you ask.' },
+    { label: 'The start', dur: 9, kicker: '', title: 'Four languages. One command.' },
+    { label: 'Next', dur: 2 },
+  ];
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const kicker = document.getElementById('kicker');
+  const title = document.getElementById('title');
+  const dots = document.getElementById('dots');
+  const playBtn = document.getElementById('play');
+  const fulls = [...stage.querySelectorAll('.full')];
+  const ICON = {
+    pause: '<svg viewBox="0 0 16 16"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>',
+    play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11a.5.5 0 0 0 .77.42l8.5-5.5a.5.5 0 0 0 0-.84l-8.5-5.5A.5.5 0 0 0 4 2.5z"/></svg>',
+    replay: '<svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 1-4.6 3H1.3A7 7 0 1 0 8 1V0L4.5 2 8 4z"/></svg>',
+  };
+
+  // A moment is "chapter,seconds". An attribute holds intervals: "2,4-5,6;6,1" (an open end = for ever).
+  const CHAPTER_SPAN = 1000;
+  const moment = s => { const [c, t] = s.split(',').map(Number); return c * CHAPTER_SPAN + t; };
+  const intervals = s => s.split(';').map(part => { const [a, b] = part.split('-'); return [moment(a), b ? moment(b) : Infinity]; });
+  const within = (list, m) => list.some(([a, b]) => m >= a && m < b);
+  const timed = [...stage.querySelectorAll('[data-on]')].map(el => ({
+    el, on: intervals(el.dataset.on), lit: el.dataset.lit ? intervals(el.dataset.lit) : null,
+  }));
+
+  const fills = CHAPTERS.map((c, n) => {
+    const b = document.createElement('button');
+    b.style.setProperty('--w', c.dur);
+    b.setAttribute('aria-label', 'Go to: ' + c.label);
+    b.innerHTML = '<span><i></i></span><em>' + c.label + '</em>';
+    b.addEventListener('click', () => { show(n); setPlaying(true); });
+    dots.appendChild(b);
+    return { b, i: b.querySelector('i') };
+  });
+
+  let index = 0, elapsed = 0, playing = true, ended = false, last = performance.now();
+
+  function render() {
+    const c = CHAPTERS[index], m = index * CHAPTER_SPAN + elapsed / 1000;
+    for (const { el, on, lit } of timed) {
+      el.classList.toggle('on', within(on, m));
+      if (lit) el.classList.toggle('lit', within(lit, m));
+    }
+    fills.forEach((f, n) => {
+      f.i.style.width = n < index ? '100%' : n > index ? '0' : Math.min(100, elapsed / (c.dur * 1000) * 100) + '%';
+      f.b.classList.toggle('cur', n === index);
+    });
+    const state = ended ? 'replay' : playing ? 'pause' : 'play';
+    if (playBtn.dataset.state !== state) {
+      playBtn.dataset.state = state;
+      playBtn.innerHTML = ICON[state];
+      playBtn.setAttribute('aria-label', state[0].toUpperCase() + state.slice(1));
+    }
+  }
+
+  function show(n, atSec = 0) {
+    index = Math.max(0, Math.min(CHAPTERS.length - 1, n));
+    const c = CHAPTERS[index];
+    elapsed = atSec * 1000; ended = false;
+    fulls.forEach(f => f.classList.toggle('show', Number(f.dataset.ch) === index));
+    frame.classList.toggle('show', Boolean(c.title));
+    if (c.title) { kicker.textContent = c.kicker; title.textContent = c.title; }
+    render();
+  }
+
+  function setPlaying(p) { playing = p; stage.classList.toggle('paused', !p); render(); }
+  function toggle() {
+    if (ended) { show(0); setPlaying(true); return; }
+    setPlaying(!playing);
+  }
+
+  function tick(now) {
+    const dt = Math.min(100, now - last); last = now;
+    if (playing && !ended) {
+      elapsed += dt;
+      if (elapsed >= CHAPTERS[index].dur * 1000) {
+        if (index < CHAPTERS.length - 1) show(index + 1);
+        else { elapsed = CHAPTERS[index].dur * 1000; ended = true; }
+      }
+      render();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  playBtn.addEventListener('click', toggle);
+  addEventListener('keydown', e => {
+    if (e.key === ' ') { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
+    else if (e.key === 'ArrowLeft') { show(index - 1); setPlaying(true); }
+    else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
+  });
+
+  // "#4" opens at chapter 4. "#4,9" opens chapter 4 at second 9, paused (a still frame).
+  const [ch, sec] = location.hash.slice(1).split(',').map(Number);
+  if (ch && sec >= 0) { stage.classList.add('still'); show(ch - 1, sec); setPlaying(false); }
+  else show((ch || 1) - 1);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

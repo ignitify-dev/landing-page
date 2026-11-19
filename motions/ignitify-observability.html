@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="facts" content="telemetry.alert-brain-down telemetry.alert-contact-point telemetry.cli-run-logs telemetry.cli-run-timeline
+  telemetry.console-json-line telemetry.counter-total telemetry.dashboards telemetry.gauge-max-counter-sum telemetry.grafana-datasources
+  telemetry.journal-to-loki telemetry.loki-retention telemetry.metrics-endpoint telemetry.no-id-labels telemetry.routing telemetry.run-logs-on-demand
+  telemetry.serial-not-shipped telemetry.spool-file-per-tenant telemetry.spool-ship-5s telemetry.timeline-reads-records telemetry.timeline-visible-events
+  telemetry.trail-named-only platform.two-brains teardown.kept-on-purpose">
+<title>Ignitify: observability in brief</title>
+<style>
+  :root {
+    --bg: #0a0c11; --panel: #12161f; --line: #2a3142;
+    --text: #eef1f7; --muted: #8d97ad; --dim: #5d667a;
+    --ember: #ff6b2c; --ember-soft: #ffb089; --safe: #3fd6b8; --warn: #f2c04e; --threat: #ff4d5e;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #05060a; overflow: hidden; }
+  body { font-family: var(--sans); color: var(--text); }
+
+  #stage {
+    position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; overflow: hidden;
+    background:
+      radial-gradient(900px 500px at 88% -10%, rgba(255, 107, 44, .12), transparent 60%),
+      radial-gradient(700px 500px at 0% 110%, rgba(63, 214, 184, .07), transparent 60%),
+      var(--bg);
+  }
+  #stage.still * { transition: none !important; }
+  #stage.paused * { animation-play-state: paused !important; }
+
+  /* Timed elements: the script adds .on (visible) and .lit (active) from data-on / data-lit */
+  [data-on] { opacity: 0; transform: translateY(10px) scale(.98); transition: opacity .6s ease, transform .6s var(--ease), border-color .4s ease, box-shadow .4s ease; }
+  [data-on].on { opacity: 1; transform: none; }
+
+  .full { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .full.show { display: flex; }
+  .logo { width: 80px; height: 80px; filter: drop-shadow(0 0 28px rgba(255, 107, 44, .55)); }
+  .word { margin-top: 20px; font-size: 68px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
+  .word b { color: var(--ember); font-weight: inherit; }
+  .tagline { margin-top: 20px; font-size: 30px; font-weight: 500; line-height: 1.35; }
+  .tagline b { color: var(--ember); font-weight: 600; }
+  .sub { margin-top: 22px; font: 500 15px/1.5 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+  #frame { position: absolute; inset: 0; display: none; }
+  #frame.show { display: block; }
+  #kicker { position: absolute; left: 40px; top: 30px; font: 600 13px/1 var(--mono); letter-spacing: .18em; color: var(--ember); text-transform: uppercase; }
+  #title { position: absolute; left: 40px; top: 52px; font-size: 36px; font-weight: 700; letter-spacing: -.02em; }
+  .state { position: absolute; right: 40px; top: 46px; height: 40px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); display: flex; align-items: center; gap: 10px; font: 700 13px/1 var(--mono); letter-spacing: .1em; }
+  .state::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+  .state.amber { color: var(--warn); } .state.green { color: var(--safe); } .state.grey { color: var(--muted); }
+
+  .cap { position: absolute; left: 40px; right: 40px; top: 628px; font-size: 21px; color: var(--ember-soft); }
+  .cap b { color: var(--text); font-weight: 600; }
+
+  .tag { position: absolute; left: 18px; top: 14px; font: 600 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .n { position: absolute; border: 1.5px solid var(--line); border-radius: 14px; background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; }
+  .n b { font-size: 19px; }
+  .n span { font-size: 14px; color: var(--muted); }
+  .n.lit { border-color: var(--ember); box-shadow: 0 0 34px rgba(255, 107, 44, .32); }
+  .n.ok { border-color: rgba(63, 214, 184, .6); }
+  .n.ok b { color: var(--safe); font-size: 16px; }
+  .n.bad { border-color: rgba(255, 77, 94, .55); }
+  .n.bad b { color: var(--threat); font-size: 16px; }
+  .n.lim { border-color: rgba(242, 192, 78, .55); }
+  .n.lim b { color: var(--warn); font-size: 16px; }
+  .n.chip { border-radius: 999px; border-color: rgba(63, 214, 184, .6); }
+  .n.chip b { font: 600 15px/1 var(--mono); color: var(--safe); }
+
+  /* A machine: a dashed region that holds the boxes that run on it */
+  .zone { position: absolute; border: 1.5px dashed var(--line); border-radius: 18px; }
+  .zone > .tag { left: 18px; top: -7px; background: var(--bg); padding: 0 8px; color: var(--muted); }
+  .box { position: absolute; border: 2px solid var(--line); border-radius: 18px; background: rgba(18, 22, 31, .7); }
+  .box.guest { border-color: var(--safe); background: rgba(10, 12, 17, .8); } .box.guest > .tag { color: var(--safe); }
+
+  .card { position: absolute; border: 1.5px solid var(--line); border-radius: 16px; background: var(--panel); padding: 44px 26px 20px; }
+  .card.lit { border-color: var(--ember); box-shadow: 0 0 34px rgba(255, 107, 44, .32); }
+  .card > .tag { color: var(--muted); }
+  .card pre { font: 500 19px/1.6 var(--mono); color: var(--muted); }
+  .card pre b { color: var(--text); font-weight: 600; }
+  .name { font: 600 23px/1 var(--mono); text-align: center; margin-top: 22px; white-space: nowrap; }
+  .legend { display: flex; justify-content: center; gap: 44px; margin-top: 34px; font-size: 17px; color: var(--muted); }
+  .legend b { font-weight: 600; }
+  .big { font: 700 34px/1 var(--mono); color: var(--warn); text-align: center; margin-top: 44px; }
+  .note { font-size: 17px; color: var(--muted); text-align: center; margin-top: 22px; }
+
+  .wire { position: absolute; height: 2px; background: var(--line); }
+  .wire i { position: absolute; left: -6px; top: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--ember); box-shadow: 0 0 16px var(--ember); opacity: 0; }
+  .wire.teal i { background: var(--safe); box-shadow: 0 0 16px var(--safe); }
+  .wire.lit i { animation: go var(--t, .9s) linear infinite; }
+  .wire.up { width: 2px; }
+  .wire.up i { top: auto; bottom: -6px; }
+  .wire.up.lit i { animation-name: rise; }
+  .wire > span { position: absolute; left: 0; right: 0; top: -24px; text-align: center; font: 600 11px/1 var(--mono); letter-spacing: .06em; color: var(--muted); white-space: nowrap; }
+  @keyframes go { 0% { opacity: 0; transform: translateX(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(var(--len)); } }
+  @keyframes rise { 0% { opacity: 0; transform: translateY(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(calc(-1 * var(--len))); } }
+
+  #bar { position: absolute; left: 0; right: 0; bottom: 0; height: 50px; display: flex; align-items: center; gap: 14px; padding: 0 22px 0 30px; z-index: 10; }
+  #bar button { all: unset; cursor: pointer; }
+  #play { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: var(--text); }
+  #play:hover { background: rgba(255, 255, 255, .08); }
+  #bar button:focus-visible { outline: 2px solid var(--ember); border-radius: 6px; }
+  #play svg { width: 16px; height: 16px; fill: currentColor; }
+  #dots { display: flex; gap: 8px; flex: 1; }
+  #dots button { flex: var(--w, 1); padding-top: 6px; }
+  #dots span { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+  #dots span i { display: block; height: 100%; width: 0; background: var(--ember); }
+  #dots em { display: block; margin-top: 6px; font: 600 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; font-style: normal; color: var(--dim); }
+  #dots button.cur em { color: var(--text); }
+
+  /* A wire whose dot goes down, or back to the left */
+  .wire.down { width: 2px; }
+  .wire.down.lit i { animation-name: fall; }
+  .wire.back i { left: auto; right: -6px; }
+  .wire.back.lit i { animation-name: goback; }
+  @keyframes fall { 0% { opacity: 0; transform: translateY(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(var(--len)); } }
+  @keyframes goback { 0% { opacity: 0; transform: translateX(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(calc(-1 * var(--len))); } }
+
+  .n code, .card code { font: 600 15px/1.3 var(--mono); color: var(--ember-soft); white-space: nowrap; }
+  .card pre.sm { font-size: 16px; line-height: 1.75; }
+  .card pre i { font-style: normal; color: var(--ember-soft); }
+  .card pre u { text-decoration: none; color: var(--safe); }
+  .kind { position: absolute; right: 18px; top: 12px; padding: 5px 10px; border-radius: 999px; border: 1.5px solid currentColor; font: 700 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+  .kind.log { color: var(--ember-soft); } .kind.metric { color: var(--safe); }
+  .q { margin-top: 6px; display: flex; align-items: baseline; gap: 22px; white-space: nowrap; }
+  .q code { font-size: 18px; color: var(--text); }
+  .q span { font-size: 16px; color: var(--muted); }
+  .msg { font-size: 18px; line-height: 1.5; color: var(--muted); }
+  .msg .sev { font: 700 15px/1 var(--mono); letter-spacing: .06em; color: var(--threat); display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .msg .sev::before { content: ""; width: 11px; height: 11px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+  .msg .sev.okc { color: var(--safe); margin: 20px 0 0; }
+  .msg b { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <section class="full" data-ch="0">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g)"/>
+    </svg>
+    <div class="word" data-on="0,.4"><b>Observability</b></div>
+    <div class="sub" data-on="0,1.4">Ignitify · from a run to a dashboard and an alert</div>
+  </section>
+
+  <div id="frame">
+    <div id="kicker"></div>
+    <div id="title"></div>
+
+    
+    <div class="box" style="left:40px; top:112px; width:480px; height:492px" data-on="1,.3-2,0" data-lit="1,.5-1,4">
+      <div class="tag" style="color:var(--muted)">Brain</div>
+      <div class="card" style="left:24px; top:52px; width:428px; height:170px">
+        <div class="tag">config · telemetry</div>
+<pre>routing:
+  <b>log</b>:    ["console", "timeline"]
+  <b>metric</b>: ["prom"]</pre>
+      </div>
+      <div class="note" style="position:absolute; left:24px; right:24px; top:290px; margin:0; font-size:19px; line-height:1.6">The brain emits records.<br>The routing names the sinks of each kind.</div>
+    </div>
+    <div class="n" style="left:660px; top:112px; width:580px; height:150px" data-on="1,4-2,0" data-lit="1,4-1,7.5"><div class="kind log">log</div><b>console</b><span>JSON lines for the journal</span></div>
+    <div class="n" style="left:660px; top:283px; width:580px; height:150px" data-on="1,4-2,0" data-lit="1,4-1,7.5"><div class="kind log">log</div><b>timeline</b><span>the durable trail</span></div>
+    <div class="n" style="left:660px; top:454px; width:580px; height:150px" data-on="1,7.5-2,0" data-lit="1,7.5-2,0"><div class="kind metric">metric</div><b>prom</b><span>the metrics page</span></div>
+    <div class="wire" style="left:520px; top:186px; width:140px; --len:140px" data-on="1,4-2,0" data-lit="1,4-2,0"><i></i><span>log</span></div>
+    <div class="wire" style="left:520px; top:357px; width:140px; --len:140px" data-on="1,4-2,0" data-lit="1,4-2,0"><i></i><span>log</span></div>
+    <div class="wire teal" style="left:520px; top:528px; width:140px; --len:140px" data-on="1,7.5-2,0" data-lit="1,7.5-2,0"><i></i><span>metric</span></div>
+
+    
+    <div class="card" style="left:40px; top:112px; width:1200px; height:164px" data-on="2,.3-3,0" data-lit="2,.5-2,4.5">
+      <div class="tag">one console line · sample</div>
+<pre class="sm">{"<b>level</b>":"info","<b>system</b>":"ignitify-brain","<b>message</b>":"run.submitted","<b>id</b>":"0198c2f4-90aa-7d11-8e02-41c6f0a9b3d7",
+ "<b>ctx</b>":{"run_id":"0198c2f4-8b1e-7c3a-9d42-5e6f7a8b9c0d"},"<b>attrs</b>":{"name":"run.submitted"}}</pre>
+    </div>
+    <div class="n" style="left:40px; top:356px; width:240px; height:150px" data-on="2,.3-3,0" data-lit="2,.5-2,4.5"><b>Brain</b><span>console sink</span></div>
+    <div class="n" style="left:360px; top:356px; width:240px; height:150px" data-on="2,4.5-3,0" data-lit="2,4.5-2,8.5"><b>journald</b><span>the journal of the machine</span></div>
+    <div class="n" style="left:680px; top:356px; width:240px; height:150px" data-on="2,4.5-3,0" data-lit="2,4.5-2,8.5"><b>Alloy</b><span>ships the journal</span></div>
+    <div class="n" style="left:1000px; top:356px; width:240px; height:150px" data-on="2,4.5-3,0" data-lit="2,8.5-3,0"><b>Loki</b><span>keeps a line for 180 days</span></div>
+    <div class="wire" style="left:280px; top:430px; width:80px; --len:80px" data-on="2,4.5-3,0" data-lit="2,4.5-3,0"><i></i></div>
+    <div class="wire" style="left:600px; top:430px; width:80px; --len:80px" data-on="2,4.5-3,0" data-lit="2,4.5-3,0"><i></i></div>
+    <div class="wire" style="left:920px; top:430px; width:80px; --len:80px" data-on="2,4.5-3,0" data-lit="2,4.5-3,0"><i></i></div>
+
+    
+    <div class="n" style="left:40px; top:124px; width:240px; height:120px" data-on="3,.3-4,0" data-lit="3,.5-3,4"><b>Timeline sink</b><span>named records only</span></div>
+    <div class="n" style="left:360px; top:124px; width:240px; height:120px" data-on="3,.3-4,0" data-lit="3,7.5-3,11"><b>Spool files</b><span>one for each tenant</span></div>
+    <div class="n" style="left:680px; top:124px; width:240px; height:120px" data-on="3,.3-4,0" data-lit="3,7.5-3,11"><b>Shipper</b><span>every 5 seconds</span></div>
+    <div class="n" style="left:1000px; top:124px; width:240px; height:120px" data-on="3,.3-4,0" data-lit="3,11-4,0"><b style="font:600 17px/1 var(--mono)">telemetry_records</b><span>a database table</span></div>
+    <div class="wire" style="left:280px; top:183px; width:80px; --len:80px" data-on="3,.3-4,0" data-lit="3,7.5-4,0"><i></i></div>
+    <div class="wire" style="left:600px; top:183px; width:80px; --len:80px" data-on="3,.3-4,0" data-lit="3,7.5-4,0"><i></i></div>
+    <div class="wire" style="left:920px; top:183px; width:80px; --len:80px" data-on="3,.3-4,0" data-lit="3,7.5-4,0"><i></i></div>
+
+    <div class="card" style="left:40px; top:300px; width:440px; height:304px; padding-top:54px" data-on="3,4-4,0" data-lit="3,4-3,7.5">
+      <div class="tag">these stay on the console</div>
+      <div class="n bad" style="left:26px; top:64px; width:388px; height:56px"><b>✕ a plain log line</b></div>
+      <div class="n bad" style="left:26px; top:140px; width:388px; height:56px"><b>✕ an API access record</b></div>
+      <div class="note" style="position:absolute; left:26px; right:26px; top:216px; margin:0">Loki has them. The table does not.</div>
+    </div>
+    <div class="wire down" style="left:1119px; top:244px; height:56px; --len:56px" data-on="3,11-4,0" data-lit="3,11-4,0"><i></i></div>
+    <div class="card" style="left:540px; top:300px; width:700px; height:304px" data-on="3,11-4,0" data-lit="3,11-4,0">
+      <div class="tag">ignitify run:timeline &lt;run-id&gt; · sample</div>
+<pre class="sm" style="margin-top:6px">2026-11-12T10:42:07.118Z  <b>Claimed for start</b>
+2026-11-12T10:42:07.131Z  <b>Starting a new VM</b>  residency=auto
+2026-11-12T10:42:09.402Z  <b>VM placed</b>
+2026-11-12T10:42:31.870Z  <u>Succeeded</u></pre>
+      <div class="note" style="text-align:left; margin-top:18px">It reads <code>GET /runs/:id/timeline</code></div>
+    </div>
+
+    
+    <div class="n" style="left:40px; top:350px; width:180px; height:100px" data-on="4,.3-5,0" data-lit="4,7-5,0"><b>Tenant</b><code>ignitify run:logs</code></div>
+    <div class="zone" style="left:262px; top:150px; width:276px; height:454px" data-on="4,.3-5,0">
+      <div class="tag">control machine</div>
+      <div class="n ok" style="left:18px; top:60px; width:240px; height:56px" data-on="4,11-5,0"><b>✓ stores no guest bytes</b></div>
+      <div class="n" style="left:18px; top:200px; width:240px; height:100px" data-on="4,.3-5,0" data-lit="4,7-5,0"><b>Brain</b><code>GET /runs/:id/logs</code></div>
+    </div>
+    <div class="zone" style="left:580px; top:150px; width:660px; height:454px" data-on="4,.3-5,0">
+      <div class="tag">fleet host</div>
+      <div class="n" style="left:22px; top:200px; width:220px; height:100px" data-on="4,.3-5,0" data-lit="4,7-5,0"><b>Host agent</b><span>reads a slice of the file</span></div>
+      <div class="box guest" style="left:310px; top:24px; width:328px; height:136px" data-on="4,.3-5,0">
+        <div class="tag">Guest VM</div>
+        <div class="n" style="left:24px; top:40px; width:280px; height:76px" data-on="4,.3-5,0" data-lit="4,.5-4,4"><b>Task</b><span>writes its output</span></div>
+      </div>
+      <div class="n" style="left:310px; top:200px; width:328px; height:100px" data-on="4,.3-5,0" data-lit="4,.5-5,0"><b>Serial console file</b><span>on the disk of the host</span></div>
+      <div class="n bad" style="left:310px; top:330px; width:328px; height:52px" data-on="4,4-5,0"><b>✕ not shipped to Loki</b></div>
+      <div class="n ok" style="left:310px; top:392px; width:328px; height:52px" data-on="4,4-5,0"><b>✓ stays after the teardown</b></div>
+    </div>
+    <div class="wire down teal" style="left:1053px; top:310px; height:40px; --len:40px" data-on="4,.3-5,0" data-lit="4,.5-4,7"><i></i></div>
+    <div class="wire" style="left:220px; top:399px; width:60px; --len:60px" data-on="4,7-4,11" data-lit="4,7-4,11"><i></i></div>
+    <div class="wire" style="left:520px; top:399px; width:82px; --len:82px" data-on="4,7-4,11" data-lit="4,7-4,11"><i></i></div>
+    <div class="wire" style="left:822px; top:399px; width:68px; --len:68px" data-on="4,7-4,11" data-lit="4,7-4,11"><i></i></div>
+    <div class="wire back teal" style="left:220px; top:399px; width:60px; --len:60px" data-on="4,11-5,0" data-lit="4,11-5,0"><i></i></div>
+    <div class="wire back teal" style="left:520px; top:399px; width:82px; --len:82px" data-on="4,11-5,0" data-lit="4,11-5,0"><i></i><span>bytes</span></div>
+    <div class="wire back teal" style="left:822px; top:399px; width:68px; --len:68px" data-on="4,11-5,0" data-lit="4,11-5,0"><i></i></div>
+
+    
+    <div class="n" style="left:40px; top:120px; width:260px; height:110px" data-on="5,.3-6,0" data-lit="5,.5-5,4"><b>Brain 1</b><code>/metrics</code></div>
+    <div class="n" style="left:40px; top:254px; width:260px; height:110px" data-on="5,.3-6,0" data-lit="5,.5-5,4"><b>Brain 2</b><code>/metrics</code></div>
+    <div class="wire teal" style="left:300px; top:174px; width:120px; --len:120px" data-on="5,.3-6,0" data-lit="5,.5-6,0"><i></i><span>every 15 s</span></div>
+    <div class="wire teal" style="left:300px; top:308px; width:120px; --len:120px" data-on="5,.3-6,0" data-lit="5,.5-6,0"><i></i><span>every 15 s</span></div>
+    <div class="n" style="left:420px; top:120px; width:260px; height:244px" data-on="5,.3-6,0" data-lit="5,.5-5,4"><b>Prometheus</b><span>scrapes the two brains</span><span>label: <code>brain</code></span></div>
+    <div class="card" style="left:740px; top:120px; width:500px; height:244px" data-on="5,4-6,0" data-lit="5,4-5,7.5">
+      <div class="tag">metric names</div>
+<pre class="sm">ignitify_run_completed<i>_total</i>   counter
+ignitify_runs_running          gauge</pre>
+      <div class="n bad" style="left:26px; top:160px; width:448px; height:56px"><b>✕ run_id, vm_id · not a label</b></div>
+    </div>
+    <div class="card" style="left:40px; top:404px; width:1200px; height:200px" data-on="5,7.5-6,0" data-lit="5,7.5-6,0">
+      <div class="tag">dashboard “Runs &amp; scheduling” · two panel queries</div>
+      <div class="q" style="margin-top:12px" data-on="5,7.5-6,0"><code><u style="text-decoration:none; color:var(--safe)">max</u>(ignitify_runs_running)</code><span>a gauge: the two brains report the same value</span></div>
+      <div class="q" style="margin-top:26px" data-on="5,11-6,0"><code><u style="text-decoration:none; color:var(--safe)">sum</u> by (status) (<u style="text-decoration:none; color:var(--safe)">increase</u>(ignitify_run_completed_total[$__rate_interval]))</code><span>a counter: its growth in a time window</span></div>
+    </div>
+
+    
+    <div class="n" style="left:40px; top:130px; width:220px; height:100px" data-on="6,.3" data-lit="6,.5-6,4"><b>Prometheus</b><span>metrics</span></div>
+    <div class="n" style="left:40px; top:272px; width:220px; height:100px" data-on="6,.3" data-lit="6,.5-6,4"><b>Loki</b><span>log lines</span></div>
+    <div class="n" style="left:40px; top:414px; width:220px; height:100px" data-on="6,.3" data-lit="6,.5-6,4"><b>Postgres</b><span>tables</span></div>
+    <div class="wire" style="left:260px; top:179px; width:80px; --len:80px" data-on="6,.3" data-lit="6,.5-7,0"><i></i></div>
+    <div class="wire" style="left:260px; top:321px; width:80px; --len:80px" data-on="6,.3" data-lit="6,.5-6,4"><i></i></div>
+    <div class="wire" style="left:260px; top:463px; width:80px; --len:80px" data-on="6,.3" data-lit="6,.5-6,4"><i></i></div>
+    <div class="box" style="left:340px; top:112px; width:380px; height:492px" data-on="6,.3">
+      <div class="tag" style="color:var(--muted)">Grafana</div>
+      <div class="n" style="left:20px; top:44px; width:340px; height:190px" data-on="6,4" data-lit="6,4-6,8"><span>alert rule</span><b>A brain is down</b><code>up{job="ignitify-brain"}</code><span>below 1 for 2 minutes</span></div>
+      <div class="n" style="left:20px; top:262px; width:340px; height:206px" data-on="6,.5" data-lit="6,.5-6,4"><b>Dashboards</b><span>files, such as</span><span style="color:var(--text)">Runs &amp; scheduling</span><span style="color:var(--text)">Run trace</span></div>
+    </div>
+    <div class="wire" style="left:720px; top:199px; width:60px; --len:60px" data-on="6,8" data-lit="6,8-7,0"><i></i></div>
+    <div class="n" style="left:780px; top:150px; width:460px; height:100px" data-on="6,8" data-lit="6,8-6,11"><b>Contact point</b><code>ignitify-operators</code></div>
+    <div class="wire down" style="left:1009px; top:250px; height:50px; --len:50px" data-on="6,8" data-lit="6,8-7,0"><i></i></div>
+    <div class="card" style="left:780px; top:300px; width:460px; height:304px" data-on="6,8" data-lit="6,8-7,0">
+      <div class="tag">a Telegram group · sample</div>
+      <div class="msg">
+        <div class="sev">CRITICAL · A brain is down</div>
+        <b>brain-2 is down: Prometheus has not scraped it for 2 minutes.</b>
+        <div style="margin-top:8px">brain: <b>brain-2</b></div>
+        <div class="sev okc" data-on="6,11">RESOLVED · A brain is down</div>
+      </div>
+    </div>
+
+    
+    <div class="cap" data-on="1,.5-1,4">The brain emits two kinds of record: <b>a log</b> and <b>a metric</b>.</div>
+    <div class="cap" data-on="1,4-1,7.5"><b>A log goes to two sinks:</b> the console and the timeline.</div>
+    <div class="cap" data-on="1,7.5-2,0"><b>A metric goes to prom only.</b></div>
+
+    <div class="cap" data-on="2,.5-2,4.5">The console sink writes <b>one JSON line</b> for each log record.</div>
+    <div class="cap" data-on="2,4.5-2,8.5">The line goes to journald. <b>Alloy ships the journal to Loki.</b></div>
+    <div class="cap" data-on="2,8.5-3,0"><b>Loki keeps a line for 180 days.</b></div>
+
+    <div class="cap" data-on="3,.5-3,4">The timeline sink is the door to the durable trail. <b>Only a named record</b> can go in.</div>
+    <div class="cap" data-on="3,4-3,7.5">A plain log line stays on the console. An API access record stays there too.</div>
+    <div class="cap" data-on="3,7.5-3,11">The sink writes <b>a file for each tenant</b>. Every 5 seconds a shipper copies the files into a table.</div>
+    <div class="cap" data-on="3,11-4,0"><b>The run timeline reads that table.</b> A tenant sees only the events that are marked visible.</div>
+
+    <div class="cap" data-on="4,.5-4,4">The output of a task goes to the <b>serial console</b> of its VM. That is a file on the fleet host.</div>
+    <div class="cap" data-on="4,4-4,7"><b>This file is not shipped to Loki.</b> It stays on the host after the teardown.</div>
+    <div class="cap" data-on="4,7-4,11">The tenant asks for it with <b>run:logs</b>. The brain asks the host agent for a slice of the file.</div>
+    <div class="cap" data-on="4,11-5,0">The bytes go back to the tenant. <b>The brain does not store them.</b></div>
+
+    <div class="cap" data-on="5,.5-5,4">Each brain shows its metrics at <b>/metrics</b>. Prometheus scrapes the two brains every 15 seconds.</div>
+    <div class="cap" data-on="5,4-5,7.5">The name of a counter ends in <b>_total</b>. An id, such as run_id, does not become a label.</div>
+    <div class="cap" data-on="5,7.5-5,11">The two brains report the same gauge. So a dashboard reads it with <b>max</b>, not sum.</div>
+    <div class="cap" data-on="5,11-6,0">A counter is different. A dashboard reads it with <b>sum</b> and <b>increase</b>.</div>
+
+    <div class="cap" data-on="6,.5-6,4">Grafana reads three sources: <b>Prometheus, Loki and Postgres</b>. Its dashboards are files.</div>
+    <div class="cap" data-on="6,4-6,8">An alert rule is a query. Grafana checks <b>A brain is down</b> every 30 seconds.</div>
+    <div class="cap" data-on="6,8-6,11">One policy sends the alert to the contact point <b>ignitify-operators</b>: a Telegram group.</div>
+    <div class="cap" data-on="6,11">When the alert ends, <b>a recovery message</b> comes too.</div>
+  </div>
+
+  <section class="full" data-ch="7">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a8"/><stop offset=".45" stop-color="#ff6b2c"/><stop offset="1" stop-color="#e2361b"/></linearGradient></defs>
+      <path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g2)"/>
+    </svg>
+    <div class="tagline" style="font-size:36px" data-on="7,0">Logs to Loki. Run events to the trail.<br><b>Metrics to Prometheus. Alerts to the operators.</b></div>
+    <div class="sub" data-on="7,0">Ignitify · Firecracker MicroVMs</div>
+  </section>
+
+  <div id="bar">
+    <button id="play" aria-label="Pause"></button>
+    <div id="dots"></div>
+  </div>
+</div>
+
+<script src="player.js"></script>
+<script>
+(() => {
+  const CHAPTERS = [
+    { label: 'Intro', dur: 4 },
+    { label: 'Emit', dur: 10.5, kicker: 'Step 1 of 6', title: 'What the brain emits' },
+    { label: 'Logs', dur: 12, kicker: 'Step 2 of 6', title: 'A log line goes to Loki' },
+    { label: 'Trail', dur: 16, kicker: 'Step 3 of 6', title: 'The durable trail and the run timeline' },
+    { label: 'Guest', dur: 15, kicker: 'Step 4 of 6', title: 'The output of the guest' },
+    { label: 'Metrics', dur: 15, kicker: 'Step 5 of 6', title: 'Metrics go to Prometheus' },
+    { label: 'Alert', dur: 15, kicker: 'Step 6 of 6', title: 'Dashboards and one alert' },
+    { label: 'Close', dur: 2 },
+  ];
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const kicker = document.getElementById('kicker');
+  const title = document.getElementById('title');
+  const dots = document.getElementById('dots');
+  const playBtn = document.getElementById('play');
+  const fulls = [...stage.querySelectorAll('.full')];
+  const ICON = {
+    pause: '<svg viewBox="0 0 16 16"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>',
+    play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11a.5.5 0 0 0 .77.42l8.5-5.5a.5.5 0 0 0 0-.84l-8.5-5.5A.5.5 0 0 0 4 2.5z"/></svg>',
+    replay: '<svg viewBox="0 0 16 16"><path d="M8 3a5 5 0 1 1-4.6 3H1.3A7 7 0 1 0 8 1V0L4.5 2 8 4z"/></svg>',
+  };
+
+  // A moment is "chapter,seconds". An attribute holds intervals: "2,4-5,6;6,1" (an open end = for ever).
+  const CHAPTER_SPAN = 1000;
+  const moment = s => { const [c, t] = s.split(',').map(Number); return c * CHAPTER_SPAN + t; };
+  const intervals = s => s.split(';').map(part => { const [a, b] = part.split('-'); return [moment(a), b ? moment(b) : Infinity]; });
+  const within = (list, m) => list.some(([a, b]) => m >= a && m < b);
+  const timed = [...stage.querySelectorAll('[data-on]')].map(el => ({
+    el, on: intervals(el.dataset.on), lit: el.dataset.lit ? intervals(el.dataset.lit) : null,
+  }));
+
+  const fills = CHAPTERS.map((c, n) => {
+    const b = document.createElement('button');
+    b.style.setProperty('--w', c.dur);
+    b.setAttribute('aria-label', 'Go to: ' + c.label);
+    b.innerHTML = '<span><i></i></span><em>' + c.label + '</em>';
+    b.addEventListener('click', () => { show(n); setPlaying(true); });
+    dots.appendChild(b);
+    return { b, i: b.querySelector('i') };
+  });
+
+  let index = 0, elapsed = 0, playing = true, ended = false, last = performance.now();
+
+  function render() {
+    const c = CHAPTERS[index], m = index * CHAPTER_SPAN + elapsed / 1000;
+    for (const { el, on, lit } of timed) {
+      el.classList.toggle('on', within(on, m));
+      if (lit) el.classList.toggle('lit', within(lit, m));
+    }
+    fills.forEach((f, n) => {
+      f.i.style.width = n < index ? '100%' : n > index ? '0' : Math.min(100, elapsed / (c.dur * 1000) * 100) + '%';
+      f.b.classList.toggle('cur', n === index);
+    });
+    const state = ended ? 'replay' : playing ? 'pause' : 'play';
+    if (playBtn.dataset.state !== state) {
+      playBtn.dataset.state = state;
+      playBtn.innerHTML = ICON[state];
+      playBtn.setAttribute('aria-label', state[0].toUpperCase() + state.slice(1));
+    }
+  }
+
+  function show(n, atSec = 0) {
+    index = Math.max(0, Math.min(CHAPTERS.length - 1, n));
+    const c = CHAPTERS[index];
+    elapsed = atSec * 1000; ended = false;
+    fulls.forEach(f => f.classList.toggle('show', Number(f.dataset.ch) === index));
+    frame.classList.toggle('show', Boolean(c.title));
+    if (c.title) { kicker.textContent = c.kicker; title.textContent = c.title; }
+    render();
+  }
+
+  function setPlaying(p) { playing = p; stage.classList.toggle('paused', !p); render(); }
+  function toggle() {
+    if (ended) { show(0); setPlaying(true); return; }
+    setPlaying(!playing);
+  }
+
+  function tick(now) {
+    const dt = Math.min(100, now - last); last = now;
+    if (playing && !ended) {
+      elapsed += dt;
+      if (elapsed >= CHAPTERS[index].dur * 1000) {
+        if (index < CHAPTERS.length - 1) show(index + 1);
+        else { elapsed = CHAPTERS[index].dur * 1000; ended = true; }
+      }
+      render();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  playBtn.addEventListener('click', toggle);
+  addEventListener('keydown', e => {
+    if (e.key === ' ') { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
+    else if (e.key === 'ArrowLeft') { show(index - 1); setPlaying(true); }
+    else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
+  });
+
+  // "#4" opens at chapter 4. "#4,9" opens chapter 4 at second 9, paused (a still frame).
+  const [ch, sec] = location.hash.slice(1).split(',').map(Number);
+  if (ch && sec >= 0) { stage.classList.add('still'); show(ch - 1, sec); setPlaying(false); }
+  else show((ch || 1) - 1);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

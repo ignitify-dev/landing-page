@@ -293,16 +293,16 @@
 
   <section class="full" data-ch="7">
     <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g)"/></svg>
-    <div class="tagline" style="font-size:34px" data-on="7,.4">Each VM gets its own of everything.<br><b>Then all of it goes back.</b></div>
+    <div class="tagline" style="font-size:34px" data-on="7,0">Each VM gets its own of everything.<br><b>Then all of it goes back.</b></div>
     <div class="pills">
-      <div class="pill" data-on="7,1.6">kernel</div>
-      <div class="pill" data-on="7,1.9">user id</div>
-      <div class="pill" data-on="7,2.2">jail</div>
-      <div class="pill" data-on="7,2.5">cgroup</div>
-      <div class="pill" data-on="7,2.8">network slot</div>
-      <div class="pill" data-on="7,3.1">scratch disk</div>
+      <div class="pill" data-on="7,0">kernel</div>
+      <div class="pill" data-on="7,0">user id</div>
+      <div class="pill" data-on="7,0">jail</div>
+      <div class="pill" data-on="7,0">cgroup</div>
+      <div class="pill" data-on="7,0">network slot</div>
+      <div class="pill" data-on="7,0">scratch disk</div>
     </div>
-    <div class="sub" data-on="7,4">Ignitify · Firecracker MicroVMs</div>
+    <div class="sub" data-on="7,0">Ignitify · Firecracker MicroVMs</div>
   </section>
 
   <div id="bar">
@@ -311,6 +311,7 @@
   </div>
 </div>
 
+<script src="player.js"></script>
 <script>
 (() => {
   const CHAPTERS = [
@@ -321,7 +322,7 @@
     { label: 'Run', dur: 14, kicker: 'Stage 4 of 6', title: 'Run: the user and the network' },
     { label: 'Warm', dur: 12.5, kicker: 'Stage 5 of 6', title: 'Result, then warm reuse' },
     { label: 'Teardown', dur: 12.5, kicker: 'Stage 6 of 6', title: 'Teardown' },
-    { label: 'End', dur: 7 },
+    { label: 'End', dur: 2 },
   ];
   const stage = document.getElementById('stage');
   const frame = document.getElementById('frame');
@@ -404,13 +405,7 @@
     requestAnimationFrame(tick);
   }
 
-  function fit() {
-    const s = Math.min(innerWidth / 1280, innerHeight / 720);
-    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
-  }
-
   playBtn.addEventListener('click', toggle);
-  addEventListener('resize', fit);
   addEventListener('keydown', e => {
     if (e.key === ' ') { e.preventDefault(); toggle(); }
     else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
@@ -418,7 +413,6 @@
     else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
   });
 
-  fit();
   // "#4" opens at chapter 4. "#4,12" opens chapter 4 at second 12, paused (a still frame).
   const [ch, sec] = location.hash.slice(1).split(',').map(Number);
   if (ch && sec >= 0) { stage.classList.add('still'); show(ch - 1, sec); setPlaying(false); }

@@ -395,16 +395,16 @@
   </section>
 
   
-  <section class="scene" data-dur="8">
+  <section class="scene" data-dur="2">
     <div class="center">
       <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path d="M37 3 12 37h15l-5 24 30-36H36z" fill="url(#g)"/></svg>
-      <div class="word a" style="--d:.5; font-size:76px">Ignitify</div>
-      <div class="tagline a" style="--d:1.2">Untrusted code in. Results out. <b>Nothing else, unless the task asks.</b></div>
+      <div class="word a" style="--d:0; font-size:76px">Ignitify</div>
+      <div class="tagline a" style="--d:0">Untrusted code in. Results out. <b>Nothing else, unless the task asks.</b></div>
       <div class="chips">
-        <div class="chip a pop" style="--d:2.2">Node</div>
-        <div class="chip a pop" style="--d:2.4">Python</div>
-        <div class="chip a pop" style="--d:2.6">Go</div>
-        <div class="chip a pop" style="--d:2.8">Rust</div>
+        <div class="chip a pop" style="--d:0">Node</div>
+        <div class="chip a pop" style="--d:0">Python</div>
+        <div class="chip a pop" style="--d:0">Go</div>
+        <div class="chip a pop" style="--d:0">Rust</div>
       </div>
     </div>
   </section>
@@ -416,6 +416,7 @@
   </div>
 </div>
 
+<script src="player.js"></script>
 <script>
 (() => {
   const stage = document.getElementById('stage');
@@ -487,13 +488,7 @@
     requestAnimationFrame(frame);
   }
 
-  function fit() {
-    const s = Math.min(innerWidth / 1280, innerHeight / 720);
-    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
-  }
-
   playBtn.addEventListener('click', toggle);
-  addEventListener('resize', fit);
   addEventListener('keydown', e => {
     if (e.key === ' ') { e.preventDefault(); toggle(); }
     else if (e.key === 'ArrowRight') { show(index + 1); setPlaying(true); }
@@ -501,7 +496,6 @@
     else if (e.key === 'Home' || e.key === 'r') { show(0); setPlaying(true); }
   });
 
-  fit();
   show((parseInt(location.hash.slice(1), 10) || 1) - 1); // #5 opens at scene 5
   requestAnimationFrame(frame);
 })();
