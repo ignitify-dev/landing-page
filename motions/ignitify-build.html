@@ -124,7 +124,7 @@
     <div class="sub" data-on="0,1.4">Ignitify · build and deploy, in five steps</div>
   </section>
 
-  <!-- One diagram: your machine, the control side, one fleet host. -->
+  
   <div id="frame">
     <div id="kicker"></div>
     <div id="title"></div>
@@ -132,7 +132,7 @@
     <div class="state amber" data-on="1,8-4,7.4">deployment · BUILDING</div>
     <div class="state green" data-on="4,7.4">deployment · READY</div>
 
-    <!-- Left: the CLI -->
+    
     <div class="term" style="left:40px; top:112px; width:300px; height:236px" data-on="1,.3">
       <div class="tag">your machine</div>
       <p data-on="1,.6"><b>$ ignitify task:deploy thumbs</b></p>
@@ -147,7 +147,7 @@
 
     <div class="wire" style="left:340px; top:202px; width:60px; --len:60px" data-on="1,.6" data-lit="1,1.4-1,4"><i></i></div>
 
-    <!-- Middle: the control side -->
+    
     <div class="zone" style="left:370px; top:112px; width:400px; height:500px" data-on="1,.3">
       <div class="tag">control</div>
       <div class="n" style="left:30px; top:44px; width:340px; height:92px" data-on="1,.5" data-lit="1,1.4-1,4;1,7.6-1,12;2,.4-2,7.6;4,3.8-4,7.4;5,.4-5,3.8"><b>Brain</b><span>decides · never builds</span></div>
@@ -168,11 +168,11 @@
     <div class="wire teal rev" style="left:740px; top:216px; width:84px; --len:84px" data-on="4,.8-5,0" data-lit="4,3.8-4,7.4"><i></i></div>
     <div class="wire teal" style="left:740px; top:540px; width:84px; --len:84px" data-on="5,3.8" data-lit="5,3.8-5,7.2"><i></i></div>
 
-    <!-- Right: one fleet host -->
+    
     <div class="zone" style="left:800px; top:112px; width:440px; height:500px" data-on="2,4.2">
       <div class="tag">fleet host</div>
 
-      <!-- steps 2-4: the build -->
+      
       <div class="box gold" style="left:24px; top:40px; width:392px; height:262px" data-on="2,4.8-4,.4" data-lit="3,.4-3,3.6">
         <div class="tag">Build MicroVM</div>
         <div class="chip" style="left:18px; top:44px; width:112px" data-on="2,7.6">2 vCPU</div>
@@ -186,7 +186,7 @@
       <div class="n" style="left:226px; top:320px; width:190px; height:72px" data-on="3,5-4,.4" data-lit="3,5-3,6.8"><b>Allow list</b><span>registries + your hosts</span></div>
       <div class="n" style="left:24px; top:40px; width:392px; height:100px" data-on="4,.8-5,0" data-lit="4,.8-4,3.8"><b>Host daemon</b><span>hashes the image · signs the digest</span></div>
 
-      <!-- step 5: the image arrives for runs -->
+      
       <div class="n" style="left:24px; top:40px; width:392px; height:80px" data-on="5,.4" data-lit="5,.4-5,7.2"><b>Host agent</b><span>pulls by digest · checks the hash</span></div>
       <div class="box teal" style="left:24px; top:138px; width:392px; height:112px" data-on="5,8.4">
         <div class="tag">Run MicroVM</div>
@@ -197,7 +197,7 @@
       <div class="n" style="left:24px; top:366px; width:392px; height:104px" data-on="5,3.8" data-lit="5,3.8-5,7.2"><b>Image cache</b><span>limit 200 GiB · stays after a VM is gone</span></div>
     </div>
 
-    <!-- one caption at a time -->
+    
     <div class="cap" data-on="1,.5-1,4">The CLI uploads the task source to a brain.</div>
     <div class="cap" data-on="1,4-1,7.6"><b>Same content, and that deployment is READY?</b> The brain uses it again. No new build.</div>
     <div class="cap" data-on="1,7.6-2,.4"><b>New content:</b> the brain writes the deployment row and the build job in one transaction.</div>

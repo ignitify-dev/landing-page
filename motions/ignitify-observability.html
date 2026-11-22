@@ -151,7 +151,7 @@
     <div id="kicker"></div>
     <div id="title"></div>
 
-    <!-- Step 1: the two kinds of record and the three sinks -->
+    
     <div class="box" style="left:40px; top:112px; width:480px; height:492px" data-on="1,.3-2,0" data-lit="1,.5-1,4">
       <div class="tag" style="color:var(--muted)">Brain</div>
       <div class="card" style="left:24px; top:52px; width:428px; height:170px">
@@ -169,7 +169,7 @@
     <div class="wire" style="left:520px; top:357px; width:140px; --len:140px" data-on="1,4-2,0" data-lit="1,4-2,0"><i></i><span>log</span></div>
     <div class="wire teal" style="left:520px; top:528px; width:140px; --len:140px" data-on="1,7.5-2,0" data-lit="1,7.5-2,0"><i></i><span>metric</span></div>
 
-    <!-- Step 2: the console line, and its way to Loki -->
+    
     <div class="card" style="left:40px; top:112px; width:1200px; height:164px" data-on="2,.3-3,0" data-lit="2,.5-2,4.5">
       <div class="tag">one console line · sample</div>
 <pre class="sm">{"<b>level</b>":"info","<b>system</b>":"ignitify-brain","<b>message</b>":"run.submitted","<b>id</b>":"0198c2f4-90aa-7d11-8e02-41c6f0a9b3d7",
@@ -183,7 +183,7 @@
     <div class="wire" style="left:600px; top:430px; width:80px; --len:80px" data-on="2,4.5-3,0" data-lit="2,4.5-3,0"><i></i></div>
     <div class="wire" style="left:920px; top:430px; width:80px; --len:80px" data-on="2,4.5-3,0" data-lit="2,4.5-3,0"><i></i></div>
 
-    <!-- Step 3: the durable trail and the run timeline -->
+    
     <div class="n" style="left:40px; top:124px; width:240px; height:120px" data-on="3,.3-4,0" data-lit="3,.5-3,4"><b>Timeline sink</b><span>named records only</span></div>
     <div class="n" style="left:360px; top:124px; width:240px; height:120px" data-on="3,.3-4,0" data-lit="3,7.5-3,11"><b>Spool files</b><span>one for each tenant</span></div>
     <div class="n" style="left:680px; top:124px; width:240px; height:120px" data-on="3,.3-4,0" data-lit="3,7.5-3,11"><b>Shipper</b><span>every 5 seconds</span></div>
@@ -208,7 +208,7 @@
       <div class="note" style="text-align:left; margin-top:18px">It reads <code>GET /runs/:id/timeline</code></div>
     </div>
 
-    <!-- Step 4: the guest serial log stays on the host; the tenant pulls it -->
+    
     <div class="n" style="left:40px; top:350px; width:180px; height:100px" data-on="4,.3-5,0" data-lit="4,7-5,0"><b>Tenant</b><code>ignitify run:logs</code></div>
     <div class="zone" style="left:262px; top:150px; width:276px; height:454px" data-on="4,.3-5,0">
       <div class="tag">control machine</div>
@@ -234,7 +234,7 @@
     <div class="wire back teal" style="left:520px; top:399px; width:82px; --len:82px" data-on="4,11-5,0" data-lit="4,11-5,0"><i></i><span>bytes</span></div>
     <div class="wire back teal" style="left:822px; top:399px; width:68px; --len:68px" data-on="4,11-5,0" data-lit="4,11-5,0"><i></i></div>
 
-    <!-- Step 5: metrics, from two brains to Prometheus, and how a panel reads them -->
+    
     <div class="n" style="left:40px; top:120px; width:260px; height:110px" data-on="5,.3-6,0" data-lit="5,.5-5,4"><b>Brain 1</b><code>/metrics</code></div>
     <div class="n" style="left:40px; top:254px; width:260px; height:110px" data-on="5,.3-6,0" data-lit="5,.5-5,4"><b>Brain 2</b><code>/metrics</code></div>
     <div class="wire teal" style="left:300px; top:174px; width:120px; --len:120px" data-on="5,.3-6,0" data-lit="5,.5-6,0"><i></i><span>every 15 s</span></div>
@@ -252,7 +252,7 @@ ignitify_runs_running          gauge</pre>
       <div class="q" style="margin-top:26px" data-on="5,11-6,0"><code><u style="text-decoration:none; color:var(--safe)">sum</u> by (status) (<u style="text-decoration:none; color:var(--safe)">increase</u>(ignitify_run_completed_total[$__rate_interval]))</code><span>a counter: its growth in a time window</span></div>
     </div>
 
-    <!-- Step 6: Grafana, one alert rule, the contact point -->
+    
     <div class="n" style="left:40px; top:130px; width:220px; height:100px" data-on="6,.3" data-lit="6,.5-6,4"><b>Prometheus</b><span>metrics</span></div>
     <div class="n" style="left:40px; top:272px; width:220px; height:100px" data-on="6,.3" data-lit="6,.5-6,4"><b>Loki</b><span>log lines</span></div>
     <div class="n" style="left:40px; top:414px; width:220px; height:100px" data-on="6,.3" data-lit="6,.5-6,4"><b>Postgres</b><span>tables</span></div>
@@ -277,7 +277,7 @@ ignitify_runs_running          gauge</pre>
       </div>
     </div>
 
-    <!-- one caption at a time -->
+    
     <div class="cap" data-on="1,.5-1,4">The brain emits two kinds of record: <b>a log</b> and <b>a metric</b>.</div>
     <div class="cap" data-on="1,4-1,7.5"><b>A log goes to two sinks:</b> the console and the timeline.</div>
     <div class="cap" data-on="1,7.5-2,0"><b>A metric goes to prom only.</b></div>

@@ -158,13 +158,13 @@
     <div id="kicker"></div>
     <div id="title"></div>
 
-    <!-- The status of the run -->
+    
     <div class="state amber" data-on="2,2.5-3,11.5">run · PENDING</div>
     <div class="state ember" data-on="3,11.5-4,.5">run · PROVISIONING</div>
     <div class="state ember" data-on="4,.5-6,4">run · RUNNING</div>
     <div class="state green" data-on="6,4">run · COMPLETED</div>
 
-    <!-- Top row: the caller, the way in, the two brains, the database -->
+    
     <div class="n" style="left:40px; top:150px; width:200px; height:150px" data-on="1,.4" data-lit="1,.5-1,7.5;2,5-2,9;7,.5-7,5"><b>Caller</b><span>CLI or HTTP client</span><code>ignitify task:run resize
  --payload '{"width":800}'
  --wait</code></div>
@@ -185,7 +185,7 @@
       <div class="row" style="top:114px" data-on="6,6.5" data-lit="6,6.5-7,0"><em>usage row of the run</em><b class="done">settled by a trigger</b></div>
     </div>
 
-    <!-- Bottom left: what the caller holds -->
+    
     <div class="box card" style="left:40px; top:345px; width:280px; height:190px" data-on="2,5-7,.5">
       <div class="tag">the answer · 201</div>
       <div class="term"><em>run_id</em>
@@ -203,7 +203,7 @@ run_7Kp2mQx9LwZd
     </div>
     <div class="n" style="left:40px; top:515px; width:280px; height:85px" data-on="7,5" data-lit="7,5-7,9.5"><b>Callback URL</b><span>signed POST · run id and status</span></div>
 
-    <!-- Bottom: what one step checks or writes -->
+    
     <div class="box" style="left:380px; top:395px; width:820px; height:190px" data-on="1,7.5-2,0">
       <div class="tag">brain 1 · before the transaction, in this order</div>
       <div class="n ok" style="left:20px; top:50px; width:250px; height:50px"><b>1 · API key</b></div>
@@ -228,7 +228,7 @@ run_7Kp2mQx9LwZd
       <div class="n bad" style="left:550px; top:120px; width:250px; height:50px" data-on="3,4-3,8"><b>here: none fits</b></div>
     </div>
 
-    <!-- The fleet host -->
+    
     <div class="zone" style="left:340px; top:395px; width:900px; height:205px" data-on="3,8"><div class="tag">fleet host</div></div>
     <div class="n" style="left:360px; top:430px; width:300px; height:110px" data-on="3,8" data-lit="4,2-4,9;5,4.5-5,8.5;5,12-6,0;6,.5-6,4"><b>Host agent</b><span>the link to the brains</span></div>
     <div class="n" style="left:760px; top:430px; width:170px; height:110px" data-on="3,8" data-lit="4,4.5-4,9;5,.5-5,8.5;5,12-6,4"><b>Host daemon</b><span>local sockets</span></div>
@@ -241,7 +241,7 @@ run_7Kp2mQx9LwZd
     <div class="n bad" style="left:1015px; top:440px; width:190px; height:62px" data-on="7,9.5"><b>one-shot task</b><span>VM destroyed</span></div>
     <div class="n ok" style="left:1015px; top:514px; width:190px; height:62px" data-on="7,9.5"><b>can be reused</b><span>stays warm</span></div>
 
-    <!-- Wires, top row -->
+    
     <div class="wire" style="left:240px; top:225px; width:40px; --len:40px" data-on="1,.4" data-lit="1,.5-1,7.5;7,.5-7,5"><i></i><span>HTTPS</span></div>
     <div class="wire back" style="left:240px; top:225px; width:40px; --len:40px" data-on="1,.4" data-lit="2,5-2,9"><i></i></div>
     <div class="wire" style="left:410px; top:225px; width:40px; --len:40px" data-on="1,.4" data-lit="1,.5-1,7.5;7,.5-7,5"><i></i></div>
@@ -252,7 +252,7 @@ run_7Kp2mQx9LwZd
     <div class="wire teal" style="left:810px; top:190px; width:50px; --len:50px" data-on="1,.4" data-lit="2,.5-2,5;5,12-6,0;7,.5-7,5"><i></i></div>
     <div class="wire teal" style="left:810px; top:290px; width:50px; --len:50px" data-on="1,.4" data-lit="3,.5-3,4;3,8-4,4.5;6,4-7,0"><i></i></div>
 
-    <!-- Wires to the fleet host and on it -->
+    
     <div class="wire v up" style="left:500px; top:330px; height:100px; --len:100px" data-on="3,8" data-lit="5,4.5-5,8.5;5,12-6,0;6,.5-6,4"><i></i><span>mTLS</span></div>
     <div class="wire v down" style="left:650px; top:330px; height:100px; --len:100px" data-on="3,8" data-lit="4,2-4,4.5"><i></i><span>mTLS · spawn</span></div>
     <div class="wire" style="left:660px; top:485px; width:100px; --len:100px" data-on="3,8" data-lit="4,4.5-4,9"><i></i><span>unix socket</span></div>
@@ -260,7 +260,7 @@ run_7Kp2mQx9LwZd
     <div class="wire" style="left:930px; top:471px; width:85px; --len:85px" data-on="4,4.5" data-lit="4,4.5-4,9"><i></i></div>
     <div class="wire back" style="left:930px; top:471px; width:85px; --len:85px" data-on="5,.5" data-lit="5,.5-5,8.5;5,12-6,0;6,.5-6,4"><i></i><span>vsock</span></div>
 
-    <!-- one caption at a time -->
+    
     <div class="cap" data-on="1,.5-1,3.5">A caller sends <b>POST /runs</b>, with an API key and a payload.</div>
     <div class="cap" data-on="1,3.5-1,7.5">The call enters at the public ingress, when that door is open. The load balancer gives it to <b>one of the two brains</b>.</div>
     <div class="cap" data-on="1,7.5-2,0">The brain <b>checks the API key first</b>. Then come the gates: a capability that the plan does not have stops the run here.</div>
