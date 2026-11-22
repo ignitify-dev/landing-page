@@ -136,7 +136,7 @@
     <div class="sub" data-on="0,2.2">Ignitify · on one fleet host</div>
   </section>
 
-  
+  <!-- One diagram of the fleet host. It grows through chapters 1-4 and is taken apart in 6. -->
   <div id="frame">
     <div id="kicker"></div>
     <div id="title"></div>
@@ -154,7 +154,7 @@
     <div id="host" data-on="1,.2">
       <div class="tag">fleet host</div>
 
-      
+      <!-- Left: the daemon, the slot pool, the identity that comes from the slot -->
       <div class="chip" style="left:16px; top:14px; width:200px" data-on="1,1.5-2,0" data-lit="1,1.5-2,0">spawn order ← host agent</div>
       <div class="wire v" style="left:115px; top:44px; height:22px; --len:22px; --t:.7s" data-on="1,1.5-2,0" data-lit="1,1.5-2,0"><i></i></div>
       <div class="n" style="left:16px; top:66px; width:200px; height:60px" data-on="1,.4" data-lit="1,1.8-1,3.4;3,.5-3,6.6;6,.8-6,5.6"><b>Host daemon</b><span>privileged · local sockets only</span></div>
@@ -173,7 +173,7 @@
       <div class="n" style="left:16px; top:402px; width:200px; height:64px" data-on="2,4.8-6,6.6" data-lit="2,4.8-2,6;4,11.5-5,0"><b>cgroup leaf</b><span>memory.max · pids.max</span></div>
       <div class="wire" style="left:216px; top:95px; width:44px; --len:44px; --t:.7s" data-on="2,2-6,5.6" data-lit="2,3-2,5;3,.5-3,6.6;6,.8-6,5.6"><i></i></div>
 
-      
+      <!-- Middle: the jail, the Firecracker process, the guest -->
       <div class="box jail" style="left:260px; top:20px; width:600px; height:484px" data-on="2,.6-6,5.6">
         <div class="tag">jail · /srv/jailer/firecracker/&lt;vm-id&gt;/root · owned by that user · mode 0700</div>
 
@@ -187,7 +187,7 @@
           <div class="chip ok" style="right:14px; top:30px" data-on="2,10">capabilities: none ✓</div>
           <div class="chip ok" style="right:196px; top:30px" data-on="2,10.8">cgroup member ✓</div>
 
-          
+          <!-- what the jailer does, before a guest exists -->
           <div class="list" style="left:14px; top:108px; width:300px" data-on="2,6.5-3,6.4">
             <div data-on="2,6.6">· move into the cgroup leaf</div>
             <div data-on="2,7.2">· chroot into the jail</div>
@@ -223,7 +223,7 @@
 
       <div class="txt" style="left:300px; top:230px; width:520px; text-align:center; font-size:16px" data-on="6,6.2"><b>Kept on purpose:</b> the guest serial log and the image cache.</div>
 
-      
+      <!-- Right: the two planes -->
       <div class="wire" style="left:860px; top:62px; width:30px; --len:30px; --t:.7s" data-on="3,10-6,2" data-lit="3,10-3,13;4,2-4,3.4;5,.5-5,1.2;5,5-5,6"><i></i></div>
       <div class="box" style="left:890px; top:10px; width:296px; height:122px" data-on="3,10-6,2">
         <div class="tag">control plane · not on the network</div>
@@ -269,7 +269,7 @@
       <div class="row" style="top:366px; border-color:var(--ember)" data-on="6,8.4"><i>✓</i>Slot 005, its tap and its user id are free</div>
     </div>
 
-    
+    <!-- one caption at a time -->
     <div class="cap" data-on="1,.5-1,3.5">A spawn order comes from the brain, through the host agent, on a local socket.</div>
     <div class="cap" data-on="1,3.5-1,7.6"><b>The daemon picks a free network slot.</b> The slot gives the tap device, the address and the MAC.</div>
     <div class="cap" data-on="1,7.6-2,.6"><b>The slot also gives the user id.</b> Two live VMs never have the same one.</div>

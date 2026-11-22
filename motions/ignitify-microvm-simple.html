@@ -105,7 +105,7 @@
     <div class="sub" data-on="0,1.4">Ignitify · in five steps</div>
   </section>
 
-  
+  <!-- One diagram. It grows in steps 1-4 and is taken apart in step 5. -->
   <div id="frame">
     <div id="kicker"></div>
     <div id="title"></div>
@@ -121,13 +121,13 @@
     <div id="host" data-on="1,.2">
       <div class="tag">fleet host</div>
 
-      
+      <!-- Left: what the host gives this VM -->
       <div class="n" style="left:40px; top:60px; width:230px; height:84px" data-on="1,.4" data-lit="1,1-1,2.4;5,5-5,8"><b>Host daemon</b><span>starts and stops VMs</span></div>
       <div class="n" style="left:40px; top:190px; width:230px; height:64px" data-on="1,2.4-5,8.6" data-lit="1,2.4-1,3.8"><b>Network slot</b></div>
       <div class="n" style="left:40px; top:270px; width:230px; height:64px" data-on="1,3.8-5,8.6" data-lit="1,3.8-1,5.2"><b>User id</b></div>
       <div class="n" style="left:40px; top:350px; width:230px; height:64px" data-on="2,2.4-5,8.6" data-lit="2,2.4-2,4"><b>Memory limit</b></div>
 
-      
+      <!-- Middle: three walls, one inside the other -->
       <div class="box jail" style="left:330px; top:30px; width:520px; height:440px" data-on="2,.8-5,7.6">
         <div class="tag">Jail · a private root directory</div>
         <div class="box fc" style="left:28px; top:52px; width:464px; height:360px" data-on="2,4-5,6.8">
@@ -140,7 +140,7 @@
         </div>
       </div>
 
-      
+      <!-- Right: the only two ways out -->
       <div class="wire" style="left:850px; top:101px; width:60px; --len:60px" data-on="3,5.5-5,5.6" data-lit="3,5.5-4,.8;5,.4-5,1.5"><i></i></div>
       <div class="n" style="left:910px; top:60px; width:250px; height:84px" data-on="3,5.5-5,5.6"><b>Control channel</b><span>private, not on the network</span></div>
 
@@ -152,7 +152,7 @@
       <div class="n bad" style="left:910px; top:404px; width:250px; height:46px" data-on="4,8-5,5.6"><b>✕ cloud credentials</b></div>
     </div>
 
-    
+    <!-- one caption at a time -->
     <div class="cap" data-on="1,.5-1,2.4">A run needs a VM. The host daemon gets the order.</div>
     <div class="cap" data-on="1,2.4-2,.8"><b>Each VM gets its own</b> network slot and user id.</div>
     <div class="cap" data-on="2,.8-2,4"><b>Wall 1: the jail.</b> A private directory that only this VM's user can open. Then a memory limit.</div>

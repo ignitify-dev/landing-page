@@ -138,7 +138,7 @@
     <div class="state amber" data-on="5,2.5-5,8">paths closed · 404</div>
     <div class="state grey" data-on="5,8">no route · 404</div>
 
-    
+    <!-- Step 1: what the task declares, and the name the platform makes -->
     <div class="card" style="left:40px; top:112px; width:560px; height:262px" data-on="1,.4-2,0" data-lit="1,.4-1,4.5">
       <div class="tag">task.yaml</div>
 <pre>execution:
@@ -163,7 +163,7 @@
       </div>
     </div>
 
-    
+    <!-- Steps 2-5: one diagram. The address, the viewer, two machines. -->
     <div class="addr" data-on="2,.2"><em>address</em><span>https://<span class="rid">3fa9c1d07e</span>--<span class="tid">0198c2f4-7b1e-7c3a-9d42-5e6f7a8b9c0d</span><span class="dom">.ignitify.app</span>/live/</span></div>
 
     <div class="n" style="left:40px; top:232px; width:180px; height:100px" data-on="3,2.5" data-lit="3,2.5-3,5"><b>Viewer</b><span>a browser</span></div>
@@ -193,17 +193,17 @@
       <div class="n ok" style="left:310px; top:346px; width:328px; height:48px" data-on="4,10-5,0"><b>✓ the host ingress</b></div>
     </div>
 
-    
+    <!-- The request path: three hops, left to right -->
     <div class="wire" style="left:220px; top:281px; width:60px; --len:60px" data-on="3,2.5" data-lit="3,5-4,0"><i></i><span>HTTPS</span></div>
     <div class="wire" style="left:520px; top:281px; width:82px; --len:82px" data-on="3,2.5" data-lit="3,9-4,0"><i></i><span>mutual TLS</span></div>
     <div class="wire teal" style="left:822px; top:281px; width:92px; --len:92px" data-on="3,2.5-5,8" data-lit="3,13-4,0"><i></i><span style="right:24px">port 8080</span></div>
 
-    
+    <!-- The route files: from the brain to the two proxies -->
     <div class="wire up" style="left:399px; top:332px; height:140px; --len:140px" data-on="2,6-3,0;5,8" data-lit="2,8-2,11;5,8-5,12"><i></i></div>
     <div class="wire" style="left:520px; top:521px; width:82px; --len:82px" data-on="2,6-3,0;5,8" data-lit="2,6-2,11;5,8-5,12"><i></i><span>routes</span></div>
     <div class="wire up" style="left:711px; top:332px; height:140px; --len:140px" data-on="2,8-3,0;5,8" data-lit="2,8-2,11;5,8-5,12"><i></i></div>
 
-    
+    <!-- one caption at a time -->
     <div class="cap" data-on="1,.5-1,4.5">A task asks for inbound traffic in task.yaml. A route needs the type <b>bidirectional</b> and an <b>inbound_port</b>.</div>
     <div class="cap" data-on="1,4.5-1,8.5"><b>The platform makes the public name</b> from the deployment id and the tenant id.</div>
     <div class="cap" data-on="1,8.5-2,0"><b>One wildcard certificate</b> covers the names of all tasks.</div>

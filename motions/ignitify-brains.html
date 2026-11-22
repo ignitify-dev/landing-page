@@ -139,7 +139,7 @@
     <div class="state amber" data-on="5,5-5,16.5">brain 1 out · 3 failed checks</div>
     <div class="state green" data-on="5,16.5">brain 1 back · 2 good checks</div>
 
-    
+    <!-- The callers, on the left -->
     <div class="n" style="left:40px; top:165px; width:180px; height:100px" data-on="2,.4" data-lit="2,.5-2,6;5,9-5,12.5"><b>Tenant</b><span>a request</span></div>
     <div class="zone" style="left:40px; top:400px; width:200px; height:190px" data-on="2,6">
       <div class="tag">fleet host</div>
@@ -147,7 +147,7 @@
       <div class="n" style="left:15px; top:90px; width:170px; height:70px" data-on="2,6" data-lit="2,6-3,0;4,4.5-4,9.5"><b>Host agent</b></div>
     </div>
 
-    
+    <!-- The load balancer and the two brains -->
     <div class="n" style="left:300px; top:150px; width:200px; height:440px" data-on="1,.4" data-lit="1,.5-1,3.5;2,.5-3,0;4,4.5-4,9.5;5,5-5,12.5"><b>Load balancer</b><span>in front of both brains</span></div>
     <div class="n lim" style="left:315px; top:440px; width:170px; height:42px" data-on="5,5-6,0"><b>check: every 5 s</b></div>
     <div class="n bad" style="left:315px; top:490px; width:170px; height:42px" data-on="5,5-6,0"><b>3 failed: out</b></div>
@@ -157,7 +157,7 @@
     <div class="n" style="left:600px; top:460px; width:220px; height:130px" data-on="1,.4" data-lit="1,.5-1,6.5;2,2-2,3.5;2,5-2,9;3,.5-3,4;4,4.5-4,13;5,9-5,12.5;5,20-6,0"><b>Brain 2</b><span>a peer</span></div>
     <div class="n down" style="left:600px; top:150px; width:220px; height:130px" data-on="5,.5-5,12.5"><b>Brain 1</b><span>stopped</span></div>
 
-    
+    <!-- Between the brains: what each one did -->
     <div class="n chip" style="left:600px; top:347px; width:220px; height:46px" data-on="1,3.5-2,0"><b>no leader</b></div>
     <div class="n ok" style="left:600px; top:292px; width:220px; height:46px" data-on="3,8.5-3,11.5"><b>✓ 1 row · wins the run</b></div>
     <div class="n lim" style="left:600px; top:402px; width:220px; height:46px" data-on="3,8.5-3,11.5"><b>0 rows · changes nothing</b></div>
@@ -166,7 +166,7 @@
     <div class="n plain" style="left:600px; top:292px; width:220px; height:46px" data-on="5,12.5-5,16.5"><b>starts again</b></div>
     <div class="n ok" style="left:600px; top:402px; width:220px; height:46px" data-on="5,9-5,12.5"><b>✓ carries on</b></div>
 
-    
+    <!-- The database -->
     <div class="box db" style="left:920px; top:150px; width:320px; height:440px" data-on="1,.4" data-lit="1,6.5-2,0;3,.5-3,4">
       <div class="tag">PostgreSQL</div>
       <div class="pgnote" data-on="1,6.5-3,0">The system of record<span>both brains use it</span></div>
@@ -191,7 +191,7 @@
       <div class="row" style="top:208px" data-on="5,20-6,0" data-lit="5,20-6,0"><em>queue job · after 120 s</em><b class="pend">back in the queue</b></div>
     </div>
 
-    
+    <!-- Wires: callers to the load balancer, the load balancer to the brains, the brains to the database -->
     <div class="wire" style="left:220px; top:214px; width:80px; --len:80px" data-on="2,.4" data-lit="2,.5-2,6;5,9-5,12.5"><i></i></div>
     <div class="wire" style="left:225px; top:524px; width:75px; --len:75px" data-on="2,6" data-lit="2,6-3,0;4,4.5-4,9.5;5,9-5,12.5"><i></i><span>mTLS</span></div>
     <div class="wire" style="left:500px; top:214px; width:100px; --len:100px" data-on="1,.4-5,5;5,16.5" data-lit="2,.5-2,2;2,3.5-2,5;2,9-3,0"><i></i></div>
@@ -200,7 +200,7 @@
     <div class="wire teal" style="left:820px; top:214px; width:100px; --len:100px" data-on="1,6.5-5,.5;5,12.5" data-lit="1,6.5-2,0;3,.5-3,11.5;5,12.5-5,16.5"><i></i></div>
     <div class="wire teal" style="left:820px; top:524px; width:100px; --len:100px" data-on="1,6.5" data-lit="1,6.5-2,0;3,.5-3,7.5;4,9.5-4,13;5,9-5,12.5"><i></i></div>
 
-    
+    <!-- one caption at a time -->
     <div class="cap" data-on="1,.5-1,3.5"><b>Two brains</b> run behind one load balancer.</div>
     <div class="cap" data-on="1,3.5-1,6.5">The two brains are peers. <b>There is no leader.</b></div>
     <div class="cap" data-on="1,6.5-2,0">Both brains use <b>one PostgreSQL database</b>. It is the system of record.</div>
