@@ -22,6 +22,8 @@
   <url><loc>https://ignitify.dev/docs/concepts/seven-axes</loc></url>
   <url><loc>https://ignitify.dev/docs/concepts/storage-and-residency</loc></url>
   <url><loc>https://ignitify.dev/docs/concepts/tasks-deployments-runs-vms</loc></url>
+  <url><loc>https://ignitify.dev/docs/flows/overview</loc></url>
+  <url><loc>https://ignitify.dev/docs/flows/pass-state</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/access-control</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/ai-harness</loc></url>
   <url><loc>https://ignitify.dev/docs/guides/choose-a-vm-size-and-disk</loc></url>
@@ -70,6 +72,7 @@
   <url><loc>https://ignitify.dev/tutorials/code-sandbox</loc></url>
   <url><loc>https://ignitify.dev/tutorials/launch-event</loc></url>
   <url><loc>https://ignitify.dev/tutorials/nightly-report</loc></url>
+  <url><loc>https://ignitify.dev/tutorials/pass-state-between-runs</loc></url>
   <url><loc>https://ignitify.dev/tutorials/pr-reviewer</loc></url>
   <url><loc>https://ignitify.dev/tutorials/streaming-job</loc></url>
   <url><loc>https://ignitify.dev/tutorials/terraform-task</loc></url>
